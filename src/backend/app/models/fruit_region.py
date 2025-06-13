@@ -1,4 +1,4 @@
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Relationship
 from .fruit import Fruit
 from .region import Region
 
@@ -13,6 +13,8 @@ class FruitRegion(SQLModel, table=True):
         description="ID de la región",
         foreign_key="Region.region_id"
     )
+    
+
     config = {
         "schema_extra": {
             "example": {

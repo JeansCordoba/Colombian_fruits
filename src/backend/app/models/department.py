@@ -1,4 +1,4 @@
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Relationship
 from .region import Region
 
 class Department(SQLModel, table=True):
@@ -13,6 +13,9 @@ class Department(SQLModel, table=True):
         description="ID de la región del departamento",
         foreign_key="Region.region_id"
     )
+    
+    # Relaciones
+    region: Region = Relationship(back_populates="departments")
     config = {
         "schema_extra": {
             "example": {
