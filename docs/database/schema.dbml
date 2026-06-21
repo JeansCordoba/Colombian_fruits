@@ -1,0 +1,162 @@
+// Colombian Fruits API — ERD
+// Source of truth — aligned with docs/colombian_fruits.png
+// Import at https://dbdiagram.io to visualize
+
+Project colombian_fruits {
+  database_type: 'PostgreSQL'
+  Note: 'Colombian native fruits catalog — Clean Architecture case study'
+}
+
+// ─── Catalog Context ───────────────────────────────────────────────
+
+Table type_plants {
+  id integer [pk, increment]
+  name varchar(50) [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Note: 'Plant growth type (tree, shrub, vine, herb)'
+}
+
+Table families {
+  id integer [pk, increment]
+  name varchar(50) [not null]
+  type_plant_id integer [not null, ref: > type_plants.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (type_plant_id)
+  }
+
+  Note: 'Botanical family — linked to TypePlant'
+}
+
+Table type_fruits {
+  id integer [pk, increment]
+  name varchar(50) [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Note: 'Fruit classification (berry, drupe, aggregate, etc.)'
+}
+
+// ─── Geo Context ─────────────────────────────────────────────────
+
+Table climates {
+  id integer [pk, increment]
+  name varchar(50) [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Note: 'Climate zones (tropical, subtropical, temperate highland, etc.)'
+}
+
+Table departments {
+  id integer [pk, increment]
+  name varchar(50) [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Note: 'Colombian departments where the fruit is cultivated or found'
+}
+
+Table natural_regions {
+  id integer [pk, increment]
+  name varchar(100) [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Note: 'Natural regions (Andean, Amazon, Caribbean, Orinoquía, Pacific)'
+}
+
+// ─── Season Context ────────────────────────────────────────────────
+
+Table harvest_seasons {
+  id integer [pk, increment]
+  start_month integer [not null, note: '1-12']
+  end_month integer [not null, note: '1-12']
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Note: 'Harvest season window — no name field, defined by month range'
+}
+
+// ─── Fruit Context (aggregate root) ────────────────────────────────
+
+Table fruits {
+  id integer [pk, increment]
+  common_name varchar(50) [not null]
+  scientific_name varchar(50) [not null, unique]
+  description text
+  family_id integer [not null, ref: > families.id]
+  type_fruit_id integer [not null, ref: > type_fruits.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    common_name
+    (family_id)
+    (type_fruit_id)
+  }
+
+  Note: 'Central aggregate — TypePlant is reached via Family, not a direct FK'
+}
+
+// ─── N:M bridge tables ───────────────────────────────────────────
+
+Table fruit_climates {
+  fruit_id integer [not null, ref: > fruits.id]
+  climate_id integer [not null, ref: > climates.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (fruit_id, climate_id) [pk]
+    (climate_id)
+  }
+}
+
+Table fruit_departments {
+  fruit_id integer [not null, ref: > fruits.id]
+  department_id integer [not null, ref: > departments.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (fruit_id, department_id) [pk]
+    (department_id)
+  }
+}
+
+Table fruit_natural_regions {
+  fruit_id integer [not null, ref: > fruits.id]
+  natural_region_id integer [not null, ref: > natural_regions.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (fruit_id, natural_region_id) [pk]
+    (natural_region_id)
+  }
+}
+
+Table fruit_harvest_seasons {
+  fruit_id integer [not null, ref: > fruits.id]
+  harvest_season_id integer [not null, ref: > harvest_seasons.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (fruit_id, harvest_season_id) [pk]
+    (harvest_season_id)
+  }
+}
+
+// ─── Relationships summary ─────────────────────────────────────────
+// TypePlant 1 ──< N Family 1 ──< N Fruit
+// TypeFruit  1 ──< N Fruit
+// Fruit N ──< M Climate          (fruit_climates)
+// Fruit N ──< M Department     (fruit_departments)
+// Fruit N ──< M NaturalRegion  (fruit_natural_regions)
+// Fruit N ──< M HarvestSeason  (fruit_harvest_seasons)
