@@ -1,0 +1,30 @@
+{
+  "name": "colombian-fruits-api",
+  "version": "0.0.1",
+  "description": "Colombian native fruits catalog API — Clean Architecture case study",
+  "private": true,
+  "packageManager": "pnpm@11.8.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "start:dev": "echo \"Bootstrap NestJS pending — main.ts not created yet\""
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/typeorm": "^11.0.2",
+    "pg": "^8.22.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "typeorm": "^1.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.1.27",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11",
+    "typescript": "^6.0.3"
+  }
+}
