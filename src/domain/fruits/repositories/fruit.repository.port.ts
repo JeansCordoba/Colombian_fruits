@@ -38,4 +38,10 @@ export interface FruitRepositoryPort{
      * @returns All fruits.
      */
     findAll(): Promise<Fruit[]>;
+    /**
+     * Update a fruit.
+     * @param fruit - The fruit to update.
+     * @returns The updated fruit.
+     */
+    update(fruit: Fruit): Promise<Fruit>;
 }
