@@ -1,0 +1,1 @@
+export const TYPE_FRUIT_REPOSITORY = Symbol('TYPE_FRUIT_REPOSITORY');

@@ -1,0 +1,1 @@
+export const FAMILY_REPOSITORY = Symbol('FAMILY_REPOSITORY');
