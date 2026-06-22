@@ -16,8 +16,8 @@ Practicar estos patrones en un flujo real de punta a punta:
 ## Prerrequisitos
 
 - Checklist completado: [`00-project-kickoff-checklist.md`](./00-project-kickoff-checklist.md)
-- Bootstrap NestJS hecho (Fase 1)
-- PostgreSQL corriendo via Docker Compose
+- Tooling TypeScript configurado: `tsconfig.json`, `pnpm run typecheck` (ver [`02-implementation-status.md`](./02-implementation-status.md))
+- PostgreSQL corriendo via Docker Compose (cuando llegues a infrastructure)
 - ERD revisado: [`../database/schema.dbml`](../database/schema.dbml)
 
 ## Orden de implementación

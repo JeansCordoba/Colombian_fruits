@@ -8,21 +8,41 @@ Raíz actual del backend:
 
 ```
 src/
-├── domain/
-│   └── fruits/
-│       ├── entities/
-│       ├── repositories/
-│       └── exceptions/
-├── application/          ← pendiente
+├── domain/               ✅ iniciado
+├── application/          ✅ use cases fruits
 ├── infrastructure/       ← pendiente
 └── interfaces/           ← pendiente
+
+Raíz del proyecto (tooling):
+├── package.json          ✅ scripts build / typecheck
+├── tsconfig.json         ✅ TypeScript + decoradores NestJS
+├── tsconfig.build.json   ✅ build a dist/
+├── nest-cli.json         ✅ preparado para bootstrap NestJS
+└── pnpm-lock.yaml
 ```
 
-> La documentación original mencionaba `src/nestjs-api/`. El código vive directamente en `src/` con capas layer-first.
+> El código vive en `src/` con capas layer-first (no `src/nestjs-api/`).
 
 ---
 
-## Completado — `domain/fruits/`
+## Configuración de compilación
+
+| Archivo | Propósito |
+|---------|-----------|
+| `package.json` | Dependencias NestJS + scripts `pnpm run typecheck` / `pnpm run build` |
+| `tsconfig.json` | TypeScript estricto, `experimentalDecorators`, `emitDecoratorMetadata`, `rootDir: src` |
+| `tsconfig.build.json` | Compila a `dist/` (excluye tests) |
+| `nest-cli.json` | Preparado para cuando exista `main.ts` y bootstrap NestJS |
+| `.vscode/settings.json` | IDE reconoce decoradores y strict mode |
+
+Comandos:
+
+```bash
+pnpm run typecheck   # valida tipos sin generar archivos
+pnpm run build       # compila src/ → dist/
+```
+
+## Completado — `domain/fruits/` (+ families, type-fruits)
 
 | Archivo | Estado | Alineación con docs |
 |---------|--------|---------------------|
@@ -42,11 +62,23 @@ Ver detalle en [`../architecture/06-domain-exceptions.md`](../architecture/06-do
 
 ---
 
+## Completado — `application/fruits/`
+
+| Archivo | Estado |
+|---------|--------|
+| `use-cases/create-fruit/create-fruit.command.ts` | ✅ |
+| `use-cases/create-fruit/create-fruit.use-case.ts` | ✅ |
+| `use-cases/get-fruit-by-id/get-fruit-by-id.command.ts` | ✅ |
+| `use-cases/get-fruit-by-id/get-fruit-by-id.use-case.ts` | ✅ |
+| `use-cases/create-fruit/create-fruit.use-case.spec.ts` | ✅ |
+| `use-cases/get-fruit-by-id/get-fruit-by-id.use-case.spec.ts` | ✅ |
+
+---
+
 ## Pendiente — siguiente en el vertical slice
 
 | Capa | Qué falta |
 |------|-----------|
-| `application/fruits/` | `CreateFruitUseCase`, `GetFruitByIdUseCase`, commands/queries |
 | `infrastructure/persistence/fruits/` | ORM entity, mapper, `PostgresFruitRepository` |
 | `interfaces/http/fruits/` | Controller, DTOs, `DomainExceptionFilter` |
 | Bootstrap | NestJS `main.ts`, `app.module.ts`, Docker PostgreSQL |
@@ -55,12 +87,12 @@ Ver detalle en [`../architecture/06-domain-exceptions.md`](../architecture/06-do
 
 ## Orden recomendado (de adentro hacia afuera)
 
-1. ✅ `domain/fruits/` — **hecho**
-2. ⬜ `application/fruits/use-cases/get-fruit-by-id/` — más simple, empezar aquí
-3. ⬜ `application/fruits/use-cases/create-fruit/`
+1. ✅ `domain/fruits/` (+ families, type-fruits)
+2. ✅ `application/fruits/` — CreateFruit + GetFruitById + tests
+3. ✅ Config TypeScript (`tsconfig`, scripts `build` / `typecheck`)
 4. ⬜ `infrastructure/persistence/fruits/`
 5. ⬜ `interfaces/http/fruits/` + exception filter
-6. ⬜ Wiring en `app.module.ts`
+6. ⬜ Bootstrap NestJS (`main.ts`, `app.module.ts`)
 
 ---
 

@@ -34,18 +34,16 @@ Responde **sí** a cada pregunta antes de continuar:
 
 ### Fase 1 — Bootstrap técnico
 
-- [ ] Proyecto NestJS con `main.ts` y estructura layer-first en `src/`
-- [ ] Configurar ESLint, Prettier, path aliases
-- [ ] Docker Compose con PostgreSQL local
-- [ ] Variables de entorno (`.env.example`)
-- [ ] Módulo shared de configuración y base de datos
-- [ ] Health check: `GET /health`
+- [x] Proyecto con `package.json`, pnpm, TypeScript
+- [x] `tsconfig.json` + `tsconfig.build.json` (decoradores NestJS)
+- [ ] `main.ts`, `app.module.ts`, Docker PostgreSQL
 
 ### Fase 2 — Vertical slice fruits
 
 Seguir [`01-vertical-slice-fruits.md`](./01-vertical-slice-fruits.md):
 
 - [x] `domain/fruits/` — entidad + puerto + token + excepciones
+- [x] `application/fruits/` — CreateFruitUseCase + GetFruitByIdUseCase + tests unitarios
 - [ ] `application/fruits/` — CreateFruitUseCase + GetFruitByIdUseCase
 - [ ] `infrastructure/persistence/fruits/` — ORM entity + mapper + repository
 - [ ] `interfaces/http/fruits/` — controller + DTOs
