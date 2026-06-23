@@ -1,7 +1,7 @@
 import { Fruit } from "../entities/fruit.entity";
 
 /**
- * Relations between a fruit and other entities.
+ * Relations between a fruit and other entities that represent a N:M relationship.
  */
 export interface FruitRelations{
     climateIds: number[];

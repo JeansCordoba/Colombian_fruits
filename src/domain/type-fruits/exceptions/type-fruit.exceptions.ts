@@ -8,15 +8,6 @@ export class TypeFruitNotFoundException extends Error {
     }
 }
 /**
- * Thrown when a type fruit with the same name already exists.
- */
-export class DuplicateTypeFruitNameException extends Error {
-    constructor(readonly name: string) {
-        super(`Type fruit with name ${name} already exists.`);
-        this.name = 'DuplicateTypeFruitNameException';
-    }
-}
-/**
  * Thrown when type fruit data breaks a domain rule.
  */
 export class InvalidTypeFruitDataException extends Error {
