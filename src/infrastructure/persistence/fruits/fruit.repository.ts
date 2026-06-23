@@ -4,8 +4,9 @@ import { FruitMapper } from "./fruit.mapper";
 import { FruitOrmEntity } from "./fruit.orm-entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { Injectable } from "@nestjs/common";
 
-
+@Injectable()
 export class FruitRepository implements FruitRepositoryPort {
     constructor(
         @InjectRepository(FruitOrmEntity)
