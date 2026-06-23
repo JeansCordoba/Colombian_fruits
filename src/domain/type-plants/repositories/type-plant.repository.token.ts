@@ -1,0 +1,1 @@
+export const TYPE_PLANT_REPOSITORY = Symbol('TYPE_PLANT_REPOSITORY');
