@@ -1,19 +1,9 @@
-import { Module } from "@nestjs/common";
-import { CreateDepartmentUseCase } from "../application/department/use-cases/create-department/create-department.use-case";
-import { DepartmentRepository } from "../infrastructure/persistence/department/department.repository";
-import { DEPARTMENT_REPOSITORY } from "../domain/department/repositories/department.repository.token";
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '../infrastructure/config/config.module';
+import { DatabaseModule } from '../infrastructure/persistence/database.module';
+import { DepartmentsModule } from './http/departments/departments.module';
 
 @Module({
-    imports: [],
-    controllers: [
-        CreateDepartmentController,
-    ],
-    providers: [
-        CreateDepartmentUseCase,
-        {
-            provide: DEPARTMENT_REPOSITORY,
-            useClass: DepartmentRepository,
-        },
-    ],
+    imports: [ConfigModule, DatabaseModule.forRoot(), DepartmentsModule],
 })
 export class AppModule {}
