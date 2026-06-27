@@ -1,16 +1,10 @@
-import { Department } from "../../../domain/department/entities/department.entity";
-import { DepartmentOrmEntity } from "./department.orm-entity";
-
+import { Department } from '../../../domain/departments/entities/department.entity';
+import { DepartmentOrmEntity } from './department.orm-entity';
 
 /**
  * Mapper for the Department entity.
  */
 export class DepartmentMapper {
-    /**
-     * Convert a DepartmentOrmEntity to a Department.
-     * @param orm - The DepartmentOrmEntity to convert.
-     * @returns The converted Department.
-     */
     static toDomain(orm: DepartmentOrmEntity): Department {
         return new Department(
             orm.id,
@@ -20,11 +14,7 @@ export class DepartmentMapper {
             orm.updatedAt,
         );
     }
-    /**
-     * Convert a Department to a DepartmentOrmEntity.
-     * @param domain - The Department to convert.
-     * @returns The converted DepartmentOrmEntity.
-     */
+
     static toPersistence(domain: Department): DepartmentOrmEntity {
         const orm = new DepartmentOrmEntity();
         if (domain.id > 0) {

@@ -7,6 +7,7 @@ export class TypePlantNotFoundException extends Error {
         this.name = 'TypePlantNotFoundException';
     }
 }
+
 /**
  * Thrown when type plant data breaks a domain rule.
  */
