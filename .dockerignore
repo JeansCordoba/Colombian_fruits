@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+.git
+.env
+.env.*
+!.env.example
+*.log
+.tmp
+.temp
+.cursor
+.vscode
+docs
+**/*.spec.ts
+**/*.md
