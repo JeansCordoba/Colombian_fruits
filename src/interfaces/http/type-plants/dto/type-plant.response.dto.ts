@@ -23,3 +23,14 @@ export class TypePlantResponseDto {
         return response;
     }
 }
+
+export class TypePlantDataResponseDto {
+    @ApiProperty({ example: true })
+    success: boolean;
+
+    @ApiProperty({ type: TypePlantResponseDto })
+    data: TypePlantResponseDto;
+
+    @ApiProperty({ example: 200 })
+    statusCode: number;
+}

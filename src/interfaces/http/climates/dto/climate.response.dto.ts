@@ -23,3 +23,14 @@ export class ClimateResponseDto {
         return response;
     }
 }
+
+export class ClimateDataResponseDto {
+    @ApiProperty({ example: true })
+    success: boolean;
+
+    @ApiProperty({ type: ClimateResponseDto })
+    data: ClimateResponseDto;
+
+    @ApiProperty({ example: 200 })
+    statusCode: number;
+}

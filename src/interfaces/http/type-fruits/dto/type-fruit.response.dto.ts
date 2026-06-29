@@ -27,3 +27,14 @@ export class TypeFruitResponseDto {
         return response;
     }
 }
+
+export class TypeFruitDataResponseDto {
+    @ApiProperty({ example: true })
+    success: boolean;
+
+    @ApiProperty({ type: TypeFruitResponseDto })
+    data: TypeFruitResponseDto;
+
+    @ApiProperty({ example: 200 })
+    statusCode: number;
+}

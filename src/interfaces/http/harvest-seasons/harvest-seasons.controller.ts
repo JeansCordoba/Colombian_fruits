@@ -4,6 +4,7 @@ import {
     Delete,
     Get,
     HttpCode,
+    HttpStatus,
     Param,
     ParseIntPipe,
     Post,
@@ -12,13 +13,15 @@ import {
 } from '@nestjs/common';
 import {
     ApiBadRequestResponse,
-    ApiConflictResponse,
     ApiCreatedResponse,
+    ApiInternalServerErrorResponse,
     ApiNoContentResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
     ApiOperation,
+    ApiParam,
     ApiTags,
+    ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { CreateHarvestSeasonCommand } from '../../../application/harvest-seasons/use-cases/create-harvest-season/create-harvest-season.command';
 import { CreateHarvestSeasonUseCase } from '../../../application/harvest-seasons/use-cases/create-harvest-season/create-harvest-season.use-case';
@@ -31,9 +34,11 @@ import { ListHarvestSeasonsUseCase } from '../../../application/harvest-seasons/
 import { UpdateHarvestSeasonCommand } from '../../../application/harvest-seasons/use-cases/update-harvest-season/update-harvest-season.command';
 import { UpdateHarvestSeasonUseCase } from '../../../application/harvest-seasons/use-cases/update-harvest-season/update-harvest-season.use-case';
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from '../../../application/shared/constants/pagination.constants';
+import { ApiErrorResponseDto } from '../shared/dto/api-error.response.dto';
+import { buildApiPaginatedSuccessResponse, buildApiSuccessResponse } from '../shared/http/build-api-success-response';
 import { CreateHarvestSeasonRequestDto } from './dto/create-harvest-season.request.dto';
 import { HarvestSeasonListResponseDto } from './dto/harvest-season-list.response.dto';
-import { HarvestSeasonResponseDto } from './dto/harvest-season.response.dto';
+import { HarvestSeasonDataResponseDto, HarvestSeasonResponseDto } from './dto/harvest-season.response.dto';
 import { ListHarvestSeasonsQueryDto } from './dto/list-harvest-seasons.query.dto';
 import { UpdateHarvestSeasonRequestDto } from './dto/update-harvest-season.request.dto';
 
@@ -49,60 +54,205 @@ export class HarvestSeasonsController {
     ) {}
 
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: 'Create a harvest season' })
-    @ApiCreatedResponse({ description: 'Harvest season created' })
-    @ApiBadRequestResponse({ description: 'Invalid request body' })
-    async create(@Body() requestDto: CreateHarvestSeasonRequestDto): Promise<HarvestSeasonResponseDto> {
+    @ApiCreatedResponse({ type: HarvestSeasonDataResponseDto, description: 'Harvest season created successfully' })
+    @ApiBadRequestResponse({
+        description: 'Invalid request body',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 400,
+                message: ['startMonth must not be less than 1', 'endMonth must not be greater than 12'],
+                error: 'Bad Request',
+            },
+        },
+    })
+    @ApiUnprocessableEntityResponse({
+        description: 'Domain validation failed',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 422,
+                message: 'Invalid harvest season data: startMonth must be between 1 and 12.',
+                error: 'Unprocessable Entity',
+            },
+        },
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 500,
+                message: 'Internal server error',
+                error: 'Internal Server Error',
+            },
+        },
+    })
+    async create(@Body() requestDto: CreateHarvestSeasonRequestDto): Promise<HarvestSeasonDataResponseDto> {
         const command = new CreateHarvestSeasonCommand(requestDto.startMonth, requestDto.endMonth);
         const harvestSeason = await this.createHarvestSeasonUseCase.execute(command);
-        return HarvestSeasonResponseDto.fromDomain(harvestSeason);
+        return buildApiSuccessResponse(HarvestSeasonResponseDto.fromDomain(harvestSeason), HttpStatus.CREATED);
     }
 
     @Get()
     @ApiOperation({ summary: 'List harvest seasons with pagination' })
-    @ApiOkResponse({ type: HarvestSeasonListResponseDto })
+    @ApiOkResponse({ type: HarvestSeasonListResponseDto, description: 'Paginated list of harvest seasons' })
+    @ApiBadRequestResponse({
+        description: 'Invalid pagination query parameters',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 400,
+                message: ['page must not be less than 1', 'limit must not be greater than 100'],
+                error: 'Bad Request',
+            },
+        },
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 500,
+                message: 'Internal server error',
+                error: 'Internal Server Error',
+            },
+        },
+    })
     async list(@Query() queryDto: ListHarvestSeasonsQueryDto): Promise<HarvestSeasonListResponseDto> {
         const query = new ListHarvestSeasonsQuery(
             queryDto.page ?? DEFAULT_PAGE,
             queryDto.limit ?? DEFAULT_LIMIT,
         );
         const result = await this.listHarvestSeasonsUseCase.execute(query);
-        return {
-            data: result.data.map((harvestSeason) => HarvestSeasonResponseDto.fromDomain(harvestSeason)),
-            meta: result.meta,
-        };
+        return buildApiPaginatedSuccessResponse(
+            result.data.map((harvestSeason) => HarvestSeasonResponseDto.fromDomain(harvestSeason)),
+            result.meta,
+            HttpStatus.OK,
+        );
     }
 
     @Get(':id')
     @ApiOperation({ summary: 'Get harvest season by id' })
-    @ApiOkResponse({ type: HarvestSeasonResponseDto })
-    @ApiNotFoundResponse({ description: 'Harvest season not found' })
-    async getById(@Param('id', ParseIntPipe) id: number): Promise<HarvestSeasonResponseDto> {
+    @ApiParam({ name: 'id', type: Number, example: 1, description: 'Harvest season numeric identifier' })
+    @ApiOkResponse({ type: HarvestSeasonDataResponseDto, description: 'Harvest season found' })
+    @ApiNotFoundResponse({
+        description: 'Harvest season not found',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 404,
+                message: 'Harvest season with id 99 not found.',
+                error: 'Not Found',
+            },
+        },
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 500,
+                message: 'Internal server error',
+                error: 'Internal Server Error',
+            },
+        },
+    })
+    async getById(@Param('id', ParseIntPipe) id: number): Promise<HarvestSeasonDataResponseDto> {
         const harvestSeason = await this.getHarvestSeasonByIdUseCase.execute(
             new GetHarvestSeasonByIdQuery(id),
         );
-        return HarvestSeasonResponseDto.fromDomain(harvestSeason);
+        return buildApiSuccessResponse(HarvestSeasonResponseDto.fromDomain(harvestSeason), HttpStatus.OK);
     }
 
     @Put(':id')
     @ApiOperation({ summary: 'Update a harvest season' })
-    @ApiOkResponse({ type: HarvestSeasonResponseDto })
-    @ApiNotFoundResponse({ description: 'Harvest season not found' })
-    @ApiBadRequestResponse({ description: 'Invalid request body' })
+    @ApiParam({ name: 'id', type: Number, example: 1, description: 'Harvest season numeric identifier' })
+    @ApiOkResponse({ type: HarvestSeasonDataResponseDto, description: 'Harvest season updated successfully' })
+    @ApiBadRequestResponse({
+        description: 'Invalid request body',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 400,
+                message: ['startMonth must not be less than 1'],
+                error: 'Bad Request',
+            },
+        },
+    })
+    @ApiNotFoundResponse({
+        description: 'Harvest season not found',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 404,
+                message: 'Harvest season with id 99 not found.',
+                error: 'Not Found',
+            },
+        },
+    })
+    @ApiUnprocessableEntityResponse({
+        description: 'Domain validation failed',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 422,
+                message: 'Invalid harvest season data: endMonth must be between 1 and 12.',
+                error: 'Unprocessable Entity',
+            },
+        },
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 500,
+                message: 'Internal server error',
+                error: 'Internal Server Error',
+            },
+        },
+    })
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() requestDto: UpdateHarvestSeasonRequestDto,
-    ): Promise<HarvestSeasonResponseDto> {
+    ): Promise<HarvestSeasonDataResponseDto> {
         const command = new UpdateHarvestSeasonCommand(id, requestDto.startMonth, requestDto.endMonth);
         const harvestSeason = await this.updateHarvestSeasonUseCase.execute(command);
-        return HarvestSeasonResponseDto.fromDomain(harvestSeason);
+        return buildApiSuccessResponse(HarvestSeasonResponseDto.fromDomain(harvestSeason), HttpStatus.OK);
     }
 
     @Delete(':id')
-    @HttpCode(204)
-    @ApiOperation({ summary: 'Delete a harvest season' })
-    @ApiNoContentResponse({ description: 'Harvest season deleted' })
-    @ApiNotFoundResponse({ description: 'Harvest season not found' })
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Soft-delete a harvest season' })
+    @ApiParam({ name: 'id', type: Number, example: 1, description: 'Harvest season numeric identifier' })
+    @ApiNoContentResponse({
+        description: 'Harvest season soft-deleted successfully (record is hidden, not physically removed)',
+    })
+    @ApiNotFoundResponse({
+        description: 'Harvest season not found',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 404,
+                message: 'Harvest season with id 99 not found.',
+                error: 'Not Found',
+            },
+        },
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+        type: ApiErrorResponseDto,
+        schema: {
+            example: {
+                statusCode: 500,
+                message: 'Internal server error',
+                error: 'Internal Server Error',
+            },
+        },
+    })
     async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
         await this.deleteHarvestSeasonUseCase.execute(new DeleteHarvestSeasonCommand(id));
     }

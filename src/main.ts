@@ -21,7 +21,13 @@ async function bootstrap(): Promise<void> {
     app.useGlobalFilters(new UnhandledExceptionFilter(), new DomainExceptionFilter());
     const swaggerConfig = new DocumentBuilder()
         .setTitle('Colombian Fruits API')
-        .setDescription('Native fruits catalog — Clean Architecture case study')
+        .setDescription(
+            'Native fruits catalog — Clean Architecture case study. ' +
+                'Base path: `/api/v1`. ' +
+                'Success responses use `{ success: true, data, statusCode }` for single resources and `{ success: true, data, meta, statusCode }` for paginated lists. ' +
+                'Errors follow `{ statusCode, message, error }` where `message` may be a string or string[]. ' +
+                'DELETE operations perform a soft delete.',
+        )
         .setVersion('0.0.1')
         .addTag('departments')
         .addTag('type-plants')

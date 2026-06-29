@@ -27,3 +27,14 @@ export class DepartmentResponseDto {
         return response;
     }
 }
+
+export class DepartmentDataResponseDto {
+    @ApiProperty({ example: true })
+    success: boolean;
+
+    @ApiProperty({ type: DepartmentResponseDto })
+    data: DepartmentResponseDto;
+
+    @ApiProperty({ example: 200 })
+    statusCode: number;
+}

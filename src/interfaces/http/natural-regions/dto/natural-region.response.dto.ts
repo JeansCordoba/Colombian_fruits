@@ -23,3 +23,14 @@ export class NaturalRegionResponseDto {
         return response;
     }
 }
+
+export class NaturalRegionDataResponseDto {
+    @ApiProperty({ example: true })
+    success: boolean;
+
+    @ApiProperty({ type: NaturalRegionResponseDto })
+    data: NaturalRegionResponseDto;
+
+    @ApiProperty({ example: 200 })
+    statusCode: number;
+}

@@ -27,3 +27,14 @@ export class HarvestSeasonResponseDto {
         return response;
     }
 }
+
+export class HarvestSeasonDataResponseDto {
+    @ApiProperty({ example: true })
+    success: boolean;
+
+    @ApiProperty({ type: HarvestSeasonResponseDto })
+    data: HarvestSeasonResponseDto;
+
+    @ApiProperty({ example: 200 })
+    statusCode: number;
+}
