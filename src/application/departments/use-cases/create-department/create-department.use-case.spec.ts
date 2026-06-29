@@ -28,7 +28,7 @@ describe('CreateDepartmentUseCase', () => {
             findPaginated: jest.fn(),
             count: jest.fn(),
             update: jest.fn(),
-            delete: jest.fn(),
+            softDelete: jest.fn(),
         };
         const module: TestingModule = await Test.createTestingModule({
             providers: [

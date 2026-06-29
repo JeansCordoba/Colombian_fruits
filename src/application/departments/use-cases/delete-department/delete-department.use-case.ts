@@ -16,6 +16,6 @@ export class DeleteDepartmentUseCase {
         if (!existingDepartment) {
             throw new DepartmentNotFoundException(command.id);
         }
-        await this.departmentRepository.delete(command.id);
+        await this.departmentRepository.softDelete(command.id);
     }
 }

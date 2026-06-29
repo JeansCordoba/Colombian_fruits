@@ -27,7 +27,7 @@ describe('DeleteDepartmentUseCase', () => {
             findPaginated: jest.fn(),
             count: jest.fn(),
             update: jest.fn(),
-            delete: jest.fn(),
+            softDelete: jest.fn(),
         };
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -38,11 +38,11 @@ describe('DeleteDepartmentUseCase', () => {
         useCase = module.get(DeleteDepartmentUseCase);
     });
 
-    it('should delete department when it exists', async () => {
+    it('should soft-delete department when it exists', async () => {
         departmentRepository.findById.mockResolvedValue(existingDepartment);
-        departmentRepository.delete.mockResolvedValue(undefined);
+        departmentRepository.softDelete.mockResolvedValue(undefined);
         await useCase.execute(new DeleteDepartmentCommand(1));
-        expect(departmentRepository.delete).toHaveBeenCalledWith(1);
+        expect(departmentRepository.softDelete).toHaveBeenCalledWith(1);
     });
 
     it('should throw when department does not exist', async () => {
@@ -50,6 +50,6 @@ describe('DeleteDepartmentUseCase', () => {
         await expect(useCase.execute(new DeleteDepartmentCommand(99))).rejects.toThrow(
             DepartmentNotFoundException,
         );
-        expect(departmentRepository.delete).not.toHaveBeenCalled();
+        expect(departmentRepository.softDelete).not.toHaveBeenCalled();
     });
 });

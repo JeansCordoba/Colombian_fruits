@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('department')
 export class DepartmentOrmEntity {
@@ -8,7 +8,7 @@ export class DepartmentOrmEntity {
     @Column({ name: 'name', type: 'varchar', length: 50 })
     name: string;
 
-    @Column({ name: 'code', type: 'varchar', length: 50 })
+    @Column({ name: 'code', type: 'varchar', length: 4 })
     code: string;
 
     @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
@@ -16,4 +16,7 @@ export class DepartmentOrmEntity {
 
     @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
     updatedAt: Date;
+
+    @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+    deletedAt: Date | null;
 }

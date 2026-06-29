@@ -13,10 +13,12 @@ import {
 import {
     ApiCreatedResponse,
     ApiNoContentResponse,
+    ApiBadRequestResponse,
     ApiOkResponse,
-    ApiOperation,
-    ApiResponse,
+    ApiOperation,  
     ApiTags,
+    ApiConflictResponse,
+    ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { CreateDepartmentCommand } from '../../../application/departments/use-cases/create-department/create-department.command';
 import { CreateDepartmentUseCase } from '../../../application/departments/use-cases/create-department/create-department.use-case';
@@ -24,7 +26,7 @@ import { DeleteDepartmentCommand } from '../../../application/departments/use-ca
 import { DeleteDepartmentUseCase } from '../../../application/departments/use-cases/delete-department/delete-department.use-case';
 import { GetDepartmentByIdQuery } from '../../../application/departments/use-cases/get-department-by-id/get-department-by-id.query';
 import { GetDepartmentByIdUseCase } from '../../../application/departments/use-cases/get-department-by-id/get-department-by-id.use-case';
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from '../../../application/departments/constants/pagination.constants';
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from '../../../application/shared/constants/pagination.constants';
 import { ListDepartmentsQuery } from '../../../application/departments/use-cases/list-departments/list-departments.query';
 import { ListDepartmentsUseCase } from '../../../application/departments/use-cases/list-departments/list-departments.use-case';
 import { UpdateDepartmentCommand } from '../../../application/departments/use-cases/update-department/update-department.command';
@@ -47,11 +49,10 @@ export class DepartmentsController {
     ) {}
 
     @Post()
-    @HttpCode(201)
     @ApiOperation({ summary: 'Create a department' })
-    @ApiCreatedResponse({ type: DepartmentResponseDto })
-    @ApiResponse({ status: 400, description: 'Invalid request body' })
-    @ApiResponse({ status: 409, description: 'Department code already exists' })
+    @ApiCreatedResponse({ description: 'Department created' })
+    @ApiBadRequestResponse({ description: 'Invalid request body' })
+    @ApiConflictResponse({ description: 'Department code already exists' })
     async create(@Body() requestDto: CreateDepartmentRequestDto): Promise<DepartmentResponseDto> {
         const command = new CreateDepartmentCommand(requestDto.name, requestDto.code);
         const department = await this.createDepartmentUseCase.execute(command);
@@ -76,7 +77,7 @@ export class DepartmentsController {
     @Get(':id')
     @ApiOperation({ summary: 'Get department by id' })
     @ApiOkResponse({ type: DepartmentResponseDto })
-    @ApiResponse({ status: 404, description: 'Department not found' })
+    @ApiNotFoundResponse({ description: 'Department not found' })
     async getById(@Param('id', ParseIntPipe) id: number): Promise<DepartmentResponseDto> {
         const department = await this.getDepartmentByIdUseCase.execute(new GetDepartmentByIdQuery(id));
         return DepartmentResponseDto.fromDomain(department);
@@ -85,8 +86,8 @@ export class DepartmentsController {
     @Put(':id')
     @ApiOperation({ summary: 'Update a department' })
     @ApiOkResponse({ type: DepartmentResponseDto })
-    @ApiResponse({ status: 404, description: 'Department not found' })
-    @ApiResponse({ status: 409, description: 'Department code already exists' })
+    @ApiNotFoundResponse({ description: 'Department not found' })
+    @ApiConflictResponse({ description: 'Department code already exists' })
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() requestDto: UpdateDepartmentRequestDto,
@@ -100,7 +101,7 @@ export class DepartmentsController {
     @HttpCode(204)
     @ApiOperation({ summary: 'Delete a department' })
     @ApiNoContentResponse({ description: 'Department deleted' })
-    @ApiResponse({ status: 404, description: 'Department not found' })
+    @ApiNotFoundResponse({ description: 'Department not found' })
     async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
         await this.deleteDepartmentUseCase.execute(new DeleteDepartmentCommand(id));
     }

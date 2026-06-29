@@ -51,14 +51,10 @@ export class DepartmentRepository implements DepartmentRepositoryPort {
     async update(department: Department): Promise<Department> {
         const orm = DepartmentMapper.toPersistence(department);
         await this.ormRepository.update(orm.id, orm);
-        const updatedOrm = await this.ormRepository.findOne({ where: { id: orm.id } });
-        if (!updatedOrm) {
-            throw new Error(`Department with id ${orm.id} was not found after update.`);
-        }
-        return DepartmentMapper.toDomain(updatedOrm);
+        return department;
     }
 
-    async delete(id: number): Promise<void> {
-        await this.ormRepository.delete(id);
+    async softDelete(id: number): Promise<void> {
+        await this.ormRepository.softDelete(id);
     }
 }
