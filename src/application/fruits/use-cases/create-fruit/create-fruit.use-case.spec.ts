@@ -31,6 +31,7 @@ describe('CreateFruitUseCase', () => {
   const mockTypeFruit: TypeFruit = new TypeFruit(
     2,
     'Berry',
+    null,
     new Date('2026-01-01'),
     new Date('2026-01-01'),
   );
@@ -76,7 +77,10 @@ describe('CreateFruitUseCase', () => {
       save: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findPaginated: jest.fn(),
+      count: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [

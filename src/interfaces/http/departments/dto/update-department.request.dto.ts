@@ -3,20 +3,20 @@ import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateDepartmentRequestDto {
-    @ApiProperty({ example: 'Antioquia', maxLength: 50 })
+    @ApiProperty({ example: 'Antioquia', maxLength: 25 })
     @IsString()
     @IsNotEmpty()
-    @MaxLength(50)
+    @MaxLength(25)
     name: string;
 
     @ApiProperty({
         example: 'ANT',
         description: 'Uppercase abbreviation for the department',
-        maxLength: 50,
+        maxLength: 4,
     })
     @IsString()
     @IsNotEmpty()
-    @MaxLength(50)
+    @MaxLength(4)
     @Transform(({ value }: { value: string }) => value.toUpperCase())
     code: string;
 }
