@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { DomainException, DomainExceptionKind } from '../../../../domain/shared/exceptions/domain-exception.base';
+import { buildApiErrorResponse } from '../http/build-api-error-response';
 
 /**
  * Maps domain exceptions to HTTP responses.
@@ -15,11 +16,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
     catch(exception: DomainException, host: ArgumentsHost): void {
         const response = host.switchToHttp().getResponse<Response>();
         const status = this.resolveStatus(exception.kind);
-        response.status(status).json({
-            statusCode: status,
-            message: exception.message,
-            error: this.resolveErrorLabel(status),
-        });
+        response.status(status).json(buildApiErrorResponse(status, exception.message));
     }
 
     private resolveStatus(kind: DomainExceptionKind): number {
@@ -29,14 +26,5 @@ export class DomainExceptionFilter implements ExceptionFilter {
             [DomainExceptionKind.INVALID_DATA]: HttpStatus.UNPROCESSABLE_ENTITY,
         };
         return statusByKind[kind];
-    }
-
-    private resolveErrorLabel(status: number): string {
-        const labels: Record<number, string> = {
-            [HttpStatus.NOT_FOUND]: 'Not Found',
-            [HttpStatus.CONFLICT]: 'Conflict',
-            [HttpStatus.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity',
-        };
-        return labels[status] ?? 'Error';
     }
 }
