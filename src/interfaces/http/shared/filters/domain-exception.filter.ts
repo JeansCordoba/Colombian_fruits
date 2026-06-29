@@ -5,29 +5,16 @@ import {
     HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
-import {
-    DepartmentNotFoundException,
-    DuplicateDepartmentCodeException,
-    InvalidDepartmentDataException,
-} from '../../../domain/departments/exceptions/department.exceptions';
-
-type DomainException =
-    | DepartmentNotFoundException
-    | DuplicateDepartmentCodeException
-    | InvalidDepartmentDataException;
+import { DomainException, DomainExceptionKind } from '../../../../domain/shared/exceptions/domain-exception.base';
 
 /**
  * Maps domain exceptions to HTTP responses.
  */
-@Catch(
-    DepartmentNotFoundException,
-    DuplicateDepartmentCodeException,
-    InvalidDepartmentDataException,
-)
+@Catch(DomainException)
 export class DomainExceptionFilter implements ExceptionFilter {
     catch(exception: DomainException, host: ArgumentsHost): void {
         const response = host.switchToHttp().getResponse<Response>();
-        const status = this.resolveStatus(exception);
+        const status = this.resolveStatus(exception.kind);
         response.status(status).json({
             statusCode: status,
             message: exception.message,
@@ -35,14 +22,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
         });
     }
 
-    private resolveStatus(exception: DomainException): number {
-        if (exception instanceof DepartmentNotFoundException) {
-            return HttpStatus.NOT_FOUND;
-        }
-        if (exception instanceof DuplicateDepartmentCodeException) {
-            return HttpStatus.CONFLICT;
-        }
-        return HttpStatus.UNPROCESSABLE_ENTITY;
+    private resolveStatus(kind: DomainExceptionKind): number {
+        const statusByKind: Record<DomainExceptionKind, number> = {
+            [DomainExceptionKind.NOT_FOUND]: HttpStatus.NOT_FOUND,
+            [DomainExceptionKind.CONFLICT]: HttpStatus.CONFLICT,
+            [DomainExceptionKind.INVALID_DATA]: HttpStatus.UNPROCESSABLE_ENTITY,
+        };
+        return statusByKind[kind];
     }
 
     private resolveErrorLabel(status: number): string {

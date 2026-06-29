@@ -5,7 +5,8 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppConfig } from './infrastructure/config/app.config';
 import { AppModule } from './interfaces/app.module';
-import { DomainExceptionFilter } from './interfaces/http/filters/domain-exception.filter';
+import { DomainExceptionFilter } from './interfaces/http/shared/filters/domain-exception.filter';
+import { UnhandledExceptionFilter } from './interfaces/http/shared/filters/unhandled-exception.filter';
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule);
@@ -17,12 +18,17 @@ async function bootstrap(): Promise<void> {
             forbidNonWhitelisted: true,
         }),
     );
-    app.useGlobalFilters(new DomainExceptionFilter());
+    app.useGlobalFilters(new UnhandledExceptionFilter(), new DomainExceptionFilter());
     const swaggerConfig = new DocumentBuilder()
         .setTitle('Colombian Fruits API')
         .setDescription('Native fruits catalog — Clean Architecture case study')
         .setVersion('0.0.1')
         .addTag('departments')
+        .addTag('type-plants')
+        .addTag('type-fruits')
+        .addTag('climates')
+        .addTag('natural-regions')
+        .addTag('harvest-seasons')
         .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api/docs', app, document);
