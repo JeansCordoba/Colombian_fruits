@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "jest",
+    "test:ci": "jest --ci --coverage=false",
     "test:watch": "jest --watch",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
