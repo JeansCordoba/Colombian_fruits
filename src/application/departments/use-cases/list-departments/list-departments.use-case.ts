@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DEFAULT_LIMIT, DEFAULT_PAGE, MAX_LIMIT } from '../../constants/pagination.constants';
+import { buildPaginatedMeta, normalizePagination } from '../../../shared/pagination/normalize-pagination';
+import { PaginatedResult } from '../../../shared/types/paginated-result';
+import { Department } from '../../../../domain/departments/entities/department.entity';
 import { DepartmentRepositoryPort } from '../../../../domain/departments/repositories/department.repository.port';
 import { DEPARTMENT_REPOSITORY } from '../../../../domain/departments/repositories/department.repository.token';
 import { ListDepartmentsQuery } from './list-departments.query';
-import { ListDepartmentsResult } from './list-departments.result';
 
 @Injectable()
 export class ListDepartmentsUseCase {
@@ -12,17 +13,15 @@ export class ListDepartmentsUseCase {
         private readonly departmentRepository: DepartmentRepositoryPort,
     ) {}
 
-    async execute(query: ListDepartmentsQuery): Promise<ListDepartmentsResult> {
-        const page = query.page > 0 ? query.page : DEFAULT_PAGE;
-        const limit = query.limit > 0 ? Math.min(query.limit, MAX_LIMIT) : DEFAULT_LIMIT;
+    async execute(query: ListDepartmentsQuery): Promise<PaginatedResult<Department>> {
+        const { page, limit } = normalizePagination(query.page, query.limit);
         const [data, total] = await Promise.all([
             this.departmentRepository.findPaginated(page, limit),
             this.departmentRepository.count(),
         ]);
-        const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
         return {
             data,
-            meta: { total, page, limit, totalPages },
+            meta: buildPaginatedMeta(total, page, limit),
         };
     }
 }
