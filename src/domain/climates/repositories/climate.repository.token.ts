@@ -1,0 +1,1 @@
+export const CLIMATE_REPOSITORY = Symbol('CLIMATE_REPOSITORY');
