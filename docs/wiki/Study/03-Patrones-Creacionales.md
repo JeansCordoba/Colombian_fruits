@@ -1,42 +1,78 @@
 # Patrones creacionales — Inyección de dependencias
 
-## ¿Qué es?
+## ¿Qué es la inyección de dependencias (DI)?
 
-**Inyección de dependencias (DI)** es entregar las dependencias de una clase desde afuera en lugar de crearlas dentro.
+**DI** significa que una clase **recibe** sus dependencias desde afuera (NestJS las resuelve) en lugar de crearlas con `new` dentro del constructor.
 
 ## Analogía cotidiana
 
-Un chef no construye su propio horno en la cocina — la cocina (NestJS) le provee el horno (repository) que necesita.
+Un chef no construye su propio horno en la cocina — el restaurante (NestJS) le provee el equipo. Si el horno se rompe, cambias el horno sin reentrenar al chef (cambias la implementación del repositorio, no el use case).
 
-## ¿Por qué importa?
+## ¿Por qué importa en Clean Architecture?
 
-Permite cambiar la implementación (mock en tests, PostgreSQL en prod) sin tocar el use case.
+El use case depende de un **puerto** (interfaz). En tests usas un mock; en producción usas `FruitRepository` con TypeORM. El use case no cambia.
 
-## Ejemplo mínimo
+## Ejemplo real — tres piezas
+
+### 1. Token (símbolo único)
+
+`src/domain/fruits/repositories/fruit.repository.token.ts`
 
 ```typescript
-// domain/fruits/repositories/fruit.repository.token.ts
 export const FRUIT_REPOSITORY = Symbol('FRUIT_REPOSITORY');
+```
 
-// infrastructure — wiring en fruits.module.ts
-{
-    provide: FRUIT_REPOSITORY,
-    useClass: FruitRepository,  // implementación concreta
-}
+TypeScript elimina las interfaces en runtime; el `Symbol` permite identificar qué implementación inyectar.
 
-// application — use case recibe el puerto
+### 2. Wiring en el módulo NestJS
+
+`src/interfaces/http/fruits/fruits.module.ts`
+
+```typescript
+providers: [
+    CreateFruitUseCase,
+    {
+        provide: FRUIT_REPOSITORY,
+        useClass: FruitRepository,
+    },
+],
+```
+
+### 3. Consumo en el use case
+
+`src/application/fruits/use-cases/create-fruit/create-fruit.use-case.ts`
+
+```typescript
 constructor(
     @Inject(FRUIT_REPOSITORY)
     private readonly fruitRepository: FruitRepositoryPort,
 ) {}
 ```
 
+El tipo es `FruitRepositoryPort` (interfaz del dominio). NestJS inyecta `FruitRepository` (clase concreta).
+
+## Caso real que rompió el proyecto: `FAMILY_REPOSITORY`
+
+`CreateFruitUseCase` necesita verificar que `familyId` existe. Para eso inyecta `FAMILY_REPOSITORY`.
+
+`FruitsModule` importa `FamiliesModule`, pero **FamiliesModule debe exportar** el token:
+
+`src/interfaces/http/families/families.module.ts`
+
+```typescript
+exports: [FAMILY_REPOSITORY],
+```
+
+Sin ese `exports`, NestJS lanza: *"Nest can't resolve dependencies of CreateFruitUseCase"*.
+
 ## Errores comunes
 
-1. **Instanciar `new FruitRepository()` en el use case** — rompe DI y tests.
-2. **Olvidar registrar el provider** en el módulo NestJS.
-3. **No exportar el token** cuando otro módulo lo necesita (ver fix de `FAMILY_REPOSITORY`).
+| Error | Síntoma | Solución |
+|-------|---------|----------|
+| `new FruitRepository()` en use case | Tests imposibles, acoplamiento | Usar `@Inject(FRUIT_REPOSITORY)` |
+| Olvidar registrar provider | Error al arrancar | Añadir en `providers` del módulo |
+| Módulo A usa token de módulo B sin import | DI error | `imports: [BModule]` + `exports` en B |
 
 ## Siguiente paso
 
-- [04-Patrones-Estructurales](Study-04-Patrones-Estructurales)
+- [[Study/04-Patrones-Estructurales]]

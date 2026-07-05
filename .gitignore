@@ -54,10 +54,6 @@ ehthumbs.db
 # Docker local overrides
 docker-compose.override.yml
 
-# Agent skills (local tooling, not part of the project)
-.agents/
-skills-lock.json
-
 # Agent skills (local tooling — not part of the project)
 .agents/
 skills-lock.json

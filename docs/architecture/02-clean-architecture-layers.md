@@ -84,11 +84,11 @@ Ver convención de excepciones: [`06-domain-exceptions.md`](./06-domain-exceptio
 | Qué va aquí | Qué NO va aquí |
 |-------------|----------------|
 | Entidades TypeORM (`FruitOrmEntity`) | Reglas de negocio |
-| Implementaciones de repositorio (`PostgresFruitRepository`) | Controllers |
+| Implementaciones de repositorio (`FruitRepository`) | Controllers |
 | Mappers (`FruitMapper.toDomain()` / `toPersistence()`) | Use Cases |
 | `DatabaseModule`, configuración, migraciones | DTOs HTTP |
 
-**Ejemplo de archivo:** `infrastructure/persistence/fruits/postgres-fruit.repository.ts`
+**Ejemplo de archivo:** `infrastructure/persistence/fruits/fruit.repository.ts`
 
 ### `interfaces/` — Adaptadores de entrada/salida
 
@@ -120,7 +120,7 @@ Los puertos viven en `domain/`. Las implementaciones viven en `infrastructure/`.
 // interfaces/app.module.ts (composición)
 {
   provide: FRUIT_REPOSITORY,           // token del puerto
-  useClass: PostgresFruitRepository,   // implementación infra
+  useClass: FruitRepository,   // implementación infra
 }
 ```
 

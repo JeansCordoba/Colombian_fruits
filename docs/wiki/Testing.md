@@ -37,5 +37,5 @@ El workflow `.github/workflows/ci.yml` ejecuta typecheck, test:ci y build en cad
 
 ## Siguiente paso
 
-- [Troubleshooting](Troubleshooting)
-- [Study/05-Patrones-Comportamiento](Study/05-Patrones-Comportamiento)
+- [[Troubleshooting]]
+- [[Study/05-Patrones-Comportamiento]]

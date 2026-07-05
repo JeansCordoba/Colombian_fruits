@@ -1,6 +1,6 @@
 # Instalación
 
-Guía detallada para levantar el proyecto en desarrollo local.
+Guía para levantar el proyecto en desarrollo local.
 
 ## Requisitos
 
@@ -24,18 +24,13 @@ pnpm install
 cp .env.example .env
 ```
 
-Ver [Environment-Variables](Environment-Variables) para detalle de cada variable.
+Detalle: [[Environment-Variables]].
 
 ### 3. PostgreSQL
 
 ```bash
 docker compose up -d postgres
-```
-
-Verifica que el contenedor esté healthy:
-
-```bash
-docker compose ps
+docker compose ps   # esperar status healthy
 ```
 
 ### 4. Migraciones
@@ -44,17 +39,17 @@ docker compose ps
 pnpm migration:run
 ```
 
-Crea todas las tablas. **No hay seed** — las tablas quedan vacías. Pobla datos vía Swagger (`http://localhost:3000/api/docs`).
+Crea todas las tablas. **No hay seed** — las tablas quedan vacías.
 
-Orden sugerido para datos mínimos:
+Orden sugerido para datos mínimos vía Swagger (`http://localhost:3000/api/docs`):
 
 1. `POST /api/v1/type-plants`
 2. `POST /api/v1/type-fruits`
 3. `POST /api/v1/climates`
-4. `POST /api/v1/departments` (requiere `name` + `code`)
+4. `POST /api/v1/departments` (`name` + `code`)
 5. `POST /api/v1/natural-regions`
 6. `POST /api/v1/harvest-seasons`
-7. `POST /api/v1/families` (requiere `typePlantId`)
+7. `POST /api/v1/families` (`typePlantId`)
 8. `POST /api/v1/fruits`
 
 ### 5. Arrancar API
@@ -63,13 +58,16 @@ Orden sugerido para datos mínimos:
 pnpm start:dev
 ```
 
+Usa `ts-node` — **no** incluye hot reload automático.
+
 ### Stack completo con Docker
 
 ```bash
 docker compose up --build
+# o: pnpm docker:up:build
 ```
 
-La API ejecuta migraciones automáticamente al iniciar.
+La API ejecuta migraciones al iniciar (`run-migrations.js` → `main.js`).
 
 ## Verificación
 
@@ -77,9 +75,9 @@ La API ejecuta migraciones automáticamente al iniciar.
 curl http://localhost:3000/health
 ```
 
-Respuesta esperada: `{ "status": "ok", "database": "connected", ... }`
+Respuesta esperada: `{ "status": "ok", "database": "connected", "timestamp": "..." }`
 
 ## Siguiente paso
 
-- [Database-Migrations](Database-Migrations)
-- [API-Overview](API-Overview)
+- [[Database-Migrations]]
+- [[API-Overview]]

@@ -50,5 +50,5 @@ Cambia `PORT` en `.env` o detén el proceso que lo usa.
 
 ## Siguiente paso
 
-- [Installation](Installation)
-- [Database-Migrations](Database-Migrations)
+- [[Installation]]
+- [[Database-Migrations]]

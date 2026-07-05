@@ -42,7 +42,7 @@ Node.js 22 · NestJS 11 · TypeScript · TypeORM · PostgreSQL 16 · Jest · Doc
 
 | Script | Description |
 |--------|-------------|
-| `pnpm start:dev` | Dev server with hot reload |
+| `pnpm start:dev` | Dev server with `ts-node` (no file watch) |
 | `pnpm start:prod` | Run migrations + production server |
 | `pnpm typecheck` | TypeScript check |
 | `pnpm test:ci` | Unit tests (CI mode) |

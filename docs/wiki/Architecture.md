@@ -1,6 +1,6 @@
 # Arquitectura
 
-Resumen de la arquitectura del proyecto. Para el detalle completo, consulta la documentación en el repositorio.
+Resumen de la arquitectura del proyecto. Para profundizar, consulta la [documentación técnica en el repositorio](https://github.com/JeansCordoba/Colombian_fruits/tree/main/docs/architecture).
 
 ## Clean Architecture + layer-first
 
@@ -10,23 +10,23 @@ interfaces → application → domain ← infrastructure
 
 | Capa | Carpeta | Responsabilidad |
 |------|---------|-----------------|
-| Domain | `src/domain/` | Entidades, puertos, excepciones |
+| Domain | `src/domain/` | Entidades, puertos, excepciones (`DomainException`) |
 | Application | `src/application/` | Use cases, validadores |
 | Infrastructure | `src/infrastructure/` | TypeORM, config, migraciones |
-| Interfaces | `src/interfaces/` | Controllers, DTOs, módulos HTTP |
+| Interfaces | `src/interfaces/` | Controllers, DTOs, filtros HTTP |
 
-## Diagramas (en el repo)
+## Diagramas (en el repositorio)
 
-Los diagramas Mermaid se mantienen en `docs/architecture/diagrams/` para renderizarse en GitHub:
+Los diagramas Mermaid viven en `docs/architecture/diagrams/` del repo principal:
 
-| Diagrama | Tema |
-|----------|------|
-| [01-system-context](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/01-system-context.md) | Cliente → API → PostgreSQL |
-| [02-clean-architecture-layers](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/02-clean-architecture-layers.md) | Capas y dependencias |
-| [03-entity-relationship](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/03-entity-relationship.md) | ERD |
-| [04-nestjs-modules](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/04-nestjs-modules.md) | Módulos NestJS |
-| [05-deployment-docker](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/05-deployment-docker.md) | Docker Compose |
-| [06-git-branching](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/06-git-branching.md) | Ramas Git |
+| Diagrama | Tema | Enlace |
+|----------|------|--------|
+| 01-system-context | Cliente → API → PostgreSQL | [Ver en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/01-system-context.md) |
+| 02-clean-architecture-layers | Capas y dependencias | [Ver en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/02-clean-architecture-layers.md) |
+| 03-entity-relationship | ERD | [Ver en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/03-entity-relationship.md) |
+| 04-nestjs-modules | Módulos NestJS | [Ver en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/04-nestjs-modules.md) |
+| 05-deployment-docker | Docker Compose | [Ver en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/05-deployment-docker.md) |
+| 06-git-branching | Ramas Git | [Ver en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/06-git-branching.md) |
 
 ## Bounded contexts
 
@@ -36,8 +36,8 @@ Los diagramas Mermaid se mantienen en `docs/architecture/diagrams/` para renderi
 
 ## ADRs
 
-[Architecture Decision Records](https://github.com/JeansCordoba/Colombian_fruits/tree/main/docs/architecture/adr) en el repo.
+Decisiones arquitectónicas: [docs/architecture/adr/](https://github.com/JeansCordoba/Colombian_fruits/tree/main/docs/architecture/adr).
 
 ## Aprendizaje
 
-Para explicaciones en lenguaje sencillo: [Study/Home](Study-Home).
+Para explicaciones en lenguaje sencillo: [[Study/Home]].

@@ -58,9 +58,9 @@ Si usaste `DATABASE_SYNCHRONIZE=true` previamente:
 3. Configura `DATABASE_SYNCHRONIZE=false`.
 4. `pnpm migration:run`.
 
-Ver [Troubleshooting](Troubleshooting) para más detalle.
+Ver [[Troubleshooting]] para más detalle.
 
 ## Siguiente paso
 
-- [Installation](Installation)
-- [Roadmap](Roadmap) — seed futuro
+- [[Installation]]
+- [[Roadmap]]

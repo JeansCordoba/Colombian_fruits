@@ -10,10 +10,9 @@ Flujo completo del caso de uso `CreateFruit`, incluyendo validación de FKs N:M,
 | `FruitsController` | interfaces | Valida DTO, delega al use case, re-fetch, envelope |
 | `CreateFruitUseCase` | application | Orquesta reglas, valida FKs, persiste |
 | `FruitRelationsValidator` | application | Valida que IDs N:M existen |
-| `GetFruitByIdUseCase` | application | Re-fetch con relaciones anidadas post-create |
+| `GetFruitByIdUseCase` | application | Re-fetch con `FruitWithRelations` post-create |
 | `FruitRepositoryPort` | domain | Contrato de persistencia |
-| `FruitRepository` | infrastructure | Implementación TypeORM + transacción N:M |
-| `FamilyRepositoryPort` | domain | Verificar que `familyId` existe |
+| `FruitRepository` | infrastructure | TypeORM + transacción N:M |
 | `PostgreSQL` | infrastructure | Almacenamiento |
 
 ## Diagrama de secuencia
@@ -21,36 +20,40 @@ Flujo completo del caso de uso `CreateFruit`, incluyendo validación de FKs N:M,
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Controller as FruitsController<br/>(interfaces)
-    participant CreateUC as CreateFruitUseCase<br/>(application)
-    participant Validator as FruitRelationsValidator<br/>(application)
-    participant GetUC as GetFruitByIdUseCase<br/>(application)
-    participant FamilyRepo as FamilyRepositoryPort<br/>(domain)
-    participant FruitRepo as FruitRepositoryPort<br/>(domain)
-    participant PGRepo as FruitRepository<br/>(infrastructure)
+    participant Controller as FruitsController
+    participant CreateUC as CreateFruitUseCase
+    participant Validator as FruitRelationsValidator
+    participant GetUC as GetFruitByIdUseCase
+    participant FamilyRepo as FamilyRepositoryPort
+    participant TypeFruitRepo as TypeFruitRepositoryPort
+    participant FruitRepo as FruitRepositoryPort
+    participant PGRepo as FruitRepository
     participant DB as PostgreSQL
 
-    Client->>Controller: POST /api/v1/fruits<br/>CreateFruitRequestDto
-    Controller->>Controller: Validate DTO (class-validator)
+    Client->>Controller: POST /api/v1/fruits
+    Controller->>Controller: ValidationPipe (DTO)
     Controller->>CreateUC: execute(CreateFruitCommand)
     CreateUC->>FamilyRepo: findById(familyId)
-    FamilyRepo-->>CreateUC: Family
-    CreateUC->>CreateUC: Check typeFruit, scientificName unique
+    FamilyRepo-->>CreateUC: Family | null
+    alt family not found
+        CreateUC-->>Controller: FamilyNotFoundException
+    end
+    CreateUC->>TypeFruitRepo: findById(typeFruitId)
+    TypeFruitRepo-->>CreateUC: TypeFruit | null
+    CreateUC->>CreateUC: check scientificName unique
     CreateUC->>Validator: validate(relations)
     Validator-->>CreateUC: OK
     CreateUC->>FruitRepo: save(fruit, relations)
-    FruitRepo->>PGRepo: (DI resolves implementation)
-    PGRepo->>DB: BEGIN TRANSACTION
-    PGRepo->>DB: INSERT INTO fruits (...)
-    PGRepo->>DB: INSERT INTO fruit_climates (...)
+    FruitRepo->>PGRepo: DI resolves implementation
+    PGRepo->>DB: BEGIN + INSERT fruits + bridge rows
     PGRepo->>DB: COMMIT
-    PGRepo-->>CreateUC: Fruit (domain entity)
+    PGRepo-->>CreateUC: Fruit
     CreateUC-->>Controller: saved Fruit
     Controller->>GetUC: execute(GetFruitByIdCommand)
-    GetUC->>FruitRepo: findWithRelationsById(id)
+    GetUC->>FruitRepo: findByIdWithRelations(id)
     FruitRepo-->>GetUC: FruitWithRelations
     GetUC-->>Controller: FruitWithRelations
-    Controller->>Controller: buildApiSuccessResponse(FruitResponseDto)
+    Controller->>Controller: buildApiSuccessResponse
     Controller-->>Client: 201 { success, data, statusCode }
 ```
 
@@ -58,20 +61,20 @@ sequenceDiagram
 
 ### 1. Entrada HTTP (`interfaces/`)
 
-El controller valida el DTO, ejecuta `CreateFruitUseCase`, luego **re-fetch** con `GetFruitByIdUseCase` para devolver relaciones anidadas completas, y envuelve en `{ success, data, statusCode }`.
+`FruitsController` usa `@Controller('fruits')`; el prefijo global `api/v1` se aplica en `main.ts`. Tras crear, el controller **re-fetch** con `GetFruitByIdUseCase` para devolver relaciones anidadas y envuelve con `buildApiSuccessResponse`.
 
 ### 2. Caso de uso (`application/`)
 
 `CreateFruitUseCase.execute(command)`:
 
-1. Verifica `familyId` y `typeFruitId` existen.
+1. Verifica `familyId` y `typeFruitId` existen (lanza excepciones de dominio si no).
 2. Verifica `scientificName` no duplicado.
 3. Delega validación N:M a `FruitRelationsValidator.validate(relations)`.
 4. Construye entidad `Fruit` y persiste vía `FruitRepositoryPort.save()`.
 
 ### 3. Persistencia (`infrastructure/`)
 
-`FruitRepository.save()` abre transacción, inserta fruta y tablas puente, commit/rollback.
+`FruitRepository.save()` abre transacción TypeORM, inserta fruta y tablas puente, commit/rollback.
 
 ### 4. Respuesta HTTP (envelope)
 
@@ -101,22 +104,24 @@ El controller valida el DTO, ejecuta `CreateFruitUseCase`, luego **re-fetch** co
 
 | Código | Condición | Origen |
 |--------|-----------|--------|
-| `400 Bad Request` | DTO inválido | `interfaces/` (ValidationPipe) |
-| `404 Not Found` | FK no existe | `application/` → excepción de dominio |
-| `409 Conflict` | `scientificName` duplicado | `DuplicateFruitScientificNameException` |
-| `422 Unprocessable Entity` | Regla de dominio incumplida | `InvalidFruitDataException` |
+| `400` | DTO inválido | `ValidationPipe` en `interfaces/` |
+| `404` | FK no existe | Use case / validator → `DomainException` (`NOT_FOUND`) |
+| `409` | `scientificName` duplicado | `DuplicateFruitScientificNameException` |
+| `422` | Regla de dominio incumplida | `InvalidFruitDataException` |
 
 ## Archivos involucrados
 
 ```
-interfaces/http/fruits/fruits.controller.ts
-application/fruits/use-cases/create-fruit/create-fruit.use-case.ts
-application/fruits/services/fruit-relations.validator.ts
-application/fruits/use-cases/get-fruit-by-id/get-fruit-by-id.use-case.ts
-infrastructure/persistence/fruits/fruit.repository.ts
+src/interfaces/http/fruits/fruits.controller.ts
+src/application/fruits/use-cases/create-fruit/create-fruit.use-case.ts
+src/application/fruits/services/fruit-relations.validator.ts
+src/application/fruits/use-cases/get-fruit-by-id/get-fruit-by-id.use-case.ts
+src/infrastructure/persistence/fruits/fruit.repository.ts
+src/interfaces/http/shared/filters/domain-exception.filter.ts
 ```
 
 ## Referencias
 
 - Contrato API: [`../api/endpoints.md`](../api/endpoints.md)
 - Patrones: [`05-design-patterns.md`](./05-design-patterns.md)
+- Excepciones: [`06-domain-exceptions.md`](./06-domain-exceptions.md)

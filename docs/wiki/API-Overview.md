@@ -4,9 +4,27 @@ Resumen del contrato HTTP de la Colombian Fruits API.
 
 ## Base URL
 
-- API: `http://localhost:3000/api/v1`
-- Swagger: `http://localhost:3000/api/docs`
-- Health: `http://localhost:3000/health` (sin prefijo `api/v1`)
+| Recurso | URL |
+|---------|-----|
+| API | `http://localhost:3000/api/v1` |
+| Swagger | `http://localhost:3000/api/docs` |
+| Health | `http://localhost:3000/health` (sin prefijo `api/v1`) |
+
+## Recursos disponibles (MVP)
+
+| Recurso | Métodos | Notas |
+|---------|---------|-------|
+| `/health` | GET | Ping BD — sin envelope |
+| `/departments` | CRUD | Incluye campo `code` |
+| `/type-plants` | CRUD | Catálogo |
+| `/type-fruits` | CRUD | Catálogo |
+| `/climates` | CRUD | Catálogo |
+| `/natural-regions` | CRUD | Catálogo |
+| `/harvest-seasons` | CRUD | Solo `startMonth` / `endMonth` |
+| `/families` | CRUD | Requiere `typePlantId` |
+| `/fruits` | CRUD | Relaciones N:M; `search` en listado |
+
+No hay autenticación en el MVP. Todas las rutas bajo `/api/v1` usan el envelope de éxito.
 
 ## Envelope de éxito
 
@@ -46,29 +64,29 @@ Resumen del contrato HTTP de la Colombian Fruits API.
 }
 ```
 
-`message` puede ser `string` o `string[]` (validación de DTOs).
+`message` puede ser `string` o `string[]` (validación de DTOs con `ValidationPipe`).
 
 ## Paginación
 
-Query params en listados:
+Query params en listados (`page`, `limit`):
 
 - `page` — default `1`
-- `limit` — default `20`, máximo `100`
-- `search` — opcional en `/fruits`
+- `limit` — default `20`, máximo `100` (`MAX_LIMIT` en código)
+- `search` — opcional solo en `GET /api/v1/fruits`
 
 ## Soft delete
 
-`DELETE` en catálogos, families y fruits marca `deleted_at`. Respuesta `204 No Content`.
+`DELETE` en catálogos, families y fruits marca `deleted_at`. Respuesta `204 No Content` sin body.
 
 ## Swagger
 
-Documentación interactiva en `/api/docs`. Incluye ejemplos de request/response por endpoint.
+Documentación interactiva en `/api/docs`. Generada desde decoradores `@nestjs/swagger` en controllers.
 
 ## Contrato completo
 
-Ver [endpoints.md](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/api/endpoints.md) en el repositorio.
+Ver [endpoints.md en el repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/api/endpoints.md).
 
 ## Siguiente paso
 
-- [Testing](Testing)
-- [Study/04-Patrones-Estructurales](Study/04-Patrones-Estructurales) — DTOs
+- [[Testing]]
+- [[Study/04-Patrones-Estructurales]] — DTOs y envelope

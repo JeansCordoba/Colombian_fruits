@@ -1,46 +1,82 @@
-# Patrones de comportamiento — Use Case, Command, Validators
+# Patrones de comportamiento — Use Case, Command, Validator
 
-## ¿Qué es?
+## ¿Qué son los patrones de comportamiento?
 
-Patrones que describen **cómo fluye la lógica**: una acción = una clase (Use Case), input tipado (Command), validación especializada.
+Describen **cómo fluye la lógica**: quién hace qué, en qué orden, y con qué datos de entrada.
 
 ## Analogía cotidiana
 
-Un formulario de solicitud (Command) llega al departamento correcto (Use Case), que verifica requisitos (Validator) antes de archivar (Repository).
+Un formulario (Command) llega al departamento correcto (Use Case). Un verificador (Validator) revisa que los anexos existan antes de archivar (Repository).
 
-## ¿Por qué importa?
+## Use Case — una acción, una clase
 
-Evita controllers gigantes y concentra reglas de negocio en clases testeables.
+Convención del proyecto: **un use case = una clase = un método `execute()`**.
 
-## Ejemplo mínimo
+| Use case | Acción |
+|----------|--------|
+| `CreateFruitUseCase` | Crear fruta + relaciones N:M |
+| `GetFruitByIdUseCase` | Leer fruta con relaciones |
+| `ListFruitsUseCase` | Listado paginado + búsqueda |
+| `UpdateFruitUseCase` | Actualizar y reemplazar N:M |
+| `DeleteFruitUseCase` | Soft delete |
+
+Archivo típico: `src/application/fruits/use-cases/create-fruit/create-fruit.use-case.ts`
+
+## Command — input tipado (sin HTTP)
+
+`src/application/fruits/use-cases/create-fruit/create-fruit.command.ts`
 
 ```typescript
-// Command — input tipado, sin HTTP
 export class CreateFruitCommand {
     constructor(
         readonly commonName: string,
+        readonly scientificName: string,
+        readonly description: string | null,
         readonly familyId: number,
-        // ...
+        readonly typeFruitId: number,
+        readonly climateIds: number[],
+        readonly departmentIds: number[],
+        readonly naturalRegionIds: number[],
+        readonly harvestSeasonIds: number[],
     ) {}
-}
-
-// Use Case — orquesta
-await this.fruitRelationsValidator.validate(relations);
-return this.fruitRepository.save(fruit, relations);
-
-// Validator — servicio de aplicación
-// application/fruits/services/fruit-relations.validator.ts
-async validate(relations: FruitRelations): Promise<void> {
-    // verifica que climateIds, departmentIds, etc. existen
 }
 ```
 
+El controller convierte `CreateFruitRequestDto` → `CreateFruitCommand`. Así el use case **no conoce** `@Body()` ni decoradores HTTP.
+
+## Validator — reglas de aplicación reutilizables
+
+`src/application/fruits/services/fruit-relations.validator.ts`
+
+Verifica que cada ID en `climateIds`, `departmentIds`, etc. exista en su catálogo. Si no, lanza la excepción de dominio correspondiente (`ClimateNotFoundException`, etc.).
+
+Esto es más claro que depender solo del error de FK de PostgreSQL.
+
+## Flujo completo en el controller
+
+`src/interfaces/http/fruits/fruits.controller.ts` (simplificado):
+
+```typescript
+@Post()
+async create(@Body() dto: CreateFruitRequestDto): Promise<FruitResponseDto> {
+    const command = new CreateFruitCommand(/* map from dto */);
+    await this.createFruitUseCase.execute(command);
+    const fruit = await this.getFruitByIdUseCase.execute(new GetFruitByIdCommand(savedId));
+    return buildApiSuccessResponse(this.toResponseDto(fruit), HttpStatus.CREATED);
+}
+```
+
+Post-create se hace **re-fetch** con `GetFruitByIdUseCase` para devolver relaciones anidadas completas.
+
 ## Errores comunes
 
-1. **Use case con más de una responsabilidad** — ej. create + send email en la misma clase.
-2. **Command con lógica** — el command solo transporta datos.
-3. **Validar FKs solo en la BD** — captura errores tarde; valida en application.
+| Error | Consecuencia |
+|-------|--------------|
+| Use case con create + list + delete | Clase gigante, difícil de testear |
+| Command con métodos de negocio | Mezcla transporte con lógica |
+| Validar FKs solo en BD | Error 500 o mensaje críptico en vez de 404 claro |
 
 ## Siguiente paso
 
-- [06-Patrones-Arquitectonicos](Study-06-Patrones-Arquitectonicos)
+- [[Study/06-Patrones-Arquitectonicos]]
+- [Secuencia CreateFruit](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/04-sequence-create-fruit.md)

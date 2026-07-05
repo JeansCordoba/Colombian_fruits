@@ -69,8 +69,12 @@ export interface FruitRelations {
 export interface FruitRepositoryPort {
   save(fruit: Fruit, relations: FruitRelations): Promise<Fruit>;
   findById(id: number): Promise<Fruit | null>;
+  findByIdWithRelations(id: number): Promise<FruitWithRelations | null>;
   findByScientificName(scientificName: string): Promise<Fruit | null>;
-  findAll(): Promise<Fruit[]>;
+  findPaginated(page: number, limit: number, search?: string): Promise<FruitListItem[]>;
+  count(search?: string): Promise<number>;
+  update(fruit: Fruit, relations: FruitRelations): Promise<Fruit>;
+  softDelete(id: number): Promise<void>;
 }
 ```
 
@@ -88,25 +92,24 @@ El token permite inyectar la interface `FruitRepositoryPort` en NestJS porque la
 
 **Archivo:** `domain/fruits/exceptions/fruit.exceptions.ts`
 
-Agrupa **todas** las excepciones del contexto `fruits` en un solo archivo:
+Agrupa las excepciones del contexto `fruits`. Extienden `DomainException` con `kind`:
 
 ```typescript
-export class FruitNotFoundException extends Error { /* ... */ }
-export class FruitScientificNameNotFoundException extends Error { /* ... */ }
-export class DuplicateFruitScientificNameException extends Error { /* ... */ }
-export class InvalidFruitDataException extends Error { /* ... */ }
+export class FruitNotFoundException extends DomainException {
+    readonly kind = DomainExceptionKind.NOT_FOUND;
+    // ...
+}
+export class DuplicateFruitScientificNameException extends DomainException { /* CONFLICT */ }
+export class InvalidFruitDataException extends DomainException { /* INVALID_DATA */ }
 ```
 
-| Excepción | Use case que la lanza | HTTP (filter) |
-|-----------|----------------------|---------------|
+| Excepción | Use case | HTTP (filter) |
+|-----------|----------|---------------|
 | `FruitNotFoundException` | `GetFruitByIdUseCase` | 404 |
-| `DuplicateFruitScientificNameException` | `CreateFruitUseCase` / repositorio | 409 |
+| `DuplicateFruitScientificNameException` | `CreateFruitUseCase` | 409 |
 | `InvalidFruitDataException` | `CreateFruitUseCase` | 422 |
-| `FruitScientificNameNotFoundException` | use cases que buscan por nombre científico | 404 |
 
 Convención completa: [`../architecture/06-domain-exceptions.md`](../architecture/06-domain-exceptions.md)
-
-**Estado:** ✅ implementado en `src/domain/fruits/exceptions/fruit.exceptions.ts`
 
 ---
 
@@ -173,11 +176,11 @@ export class FruitMapper {
 
 #### 3.3 Repositorio Postgres
 
-**Archivo:** `infrastructure/persistence/fruits/postgres-fruit.repository.ts`
+**Archivo:** `infrastructure/persistence/fruits/fruit.repository.ts`
 
 - Implementa `FruitRepositoryPort`.
-- `save()`: transacción → INSERT fruit → INSERT bridge tables → COMMIT.
-- `findById()`: query con joins para relaciones anidadas.
+- `save()` / `update()`: transacción → INSERT/UPDATE fruit → bridge tables → COMMIT.
+- `findByIdWithRelations()`: query con joins para relaciones anidadas.
 
 #### 3.4 DatabaseModule
 
@@ -209,30 +212,25 @@ export class FruitMapper {
 **Archivo:** `interfaces/http/fruits/fruits.controller.ts`
 
 ```typescript
-@Controller('api/v1/fruits')
+@Controller('fruits')
 export class FruitsController {
   @Post()
   async create(@Body() dto: CreateFruitRequestDto): Promise<FruitResponseDto> {
     const command = this.toCommand(dto);
-    const fruit = await this.createFruitUseCase.execute(command);
-    return this.toResponse(fruit);
-  }
-
-  @Get(':id')
-  async findById(@Param('id', ParseIntPipe) id: number): Promise<FruitResponseDto> {
-    const fruit = await this.getFruitByIdUseCase.execute({ id });
-    return this.toResponse(fruit);
+    const saved = await this.createFruitUseCase.execute(command);
+    const fruit = await this.getFruitByIdUseCase.execute(new GetFruitByIdCommand(saved.id));
+    return buildApiSuccessResponse(this.toResponse(fruit), HttpStatus.CREATED);
   }
 }
 ```
 
-El controller **solo adapta**: DTO → Command → UseCase → Response DTO.
+Global prefix `api/v1` is set in `main.ts` — do not repeat it in `@Controller()`.
 
 #### 4.4 Exception filter
 
-**Archivo:** `interfaces/http/filters/domain-exception.filter.ts`
+**Archivo:** `interfaces/http/shared/filters/domain-exception.filter.ts`
 
-Traduce excepciones de dominio a códigos HTTP. El controller y los use cases **no** usan `NotFoundException` de NestJS.
+`@Catch(DomainException)` traduce `kind` → HTTP status. Controllers y use cases no usan `NotFoundException` de NestJS.
 
 #### 4.5 Wiring en AppModule
 
@@ -288,7 +286,7 @@ src/
 ├── infrastructure/persistence/fruits/
 │   ├── fruit.orm-entity.ts
 │   ├── fruit.mapper.ts
-│   └── postgres-fruit.repository.ts
+│   └── fruit.repository.ts
 └── interfaces/http/fruits/
     ├── fruits.controller.ts
     └── dto/
