@@ -33,7 +33,10 @@ src/
     ├── http/
     │   ├── fruits/
     │   ├── families/
-    │   └── ...
+    │   ├── health/
+    │   ├── departments/
+    │   ├── climates/
+    │   └── ... (catálogos)
     └── app.module.ts
 ```
 
@@ -71,7 +74,7 @@ application/fruits/
 infrastructure/persistence/fruits/
 ├── fruit.orm-entity.ts              # TypeORM @Entity
 ├── fruit.mapper.ts                  # toDomain() / toPersistence()
-└── postgres-fruit.repository.ts     # Implementa FruitRepositoryPort
+└── fruit.repository.ts              # Implementa FruitRepositoryPort
 ```
 
 ### `interfaces/http/fruits/`
@@ -92,7 +95,7 @@ flowchart LR
     A["interfaces/http/fruits/\nFruitsController"]
     B["application/fruits/\nCreateFruitUseCase"]
     C["domain/fruits/\nFruitRepositoryPort"]
-    D["infrastructure/persistence/fruits/\nPostgresFruitRepository"]
+    D["infrastructure/persistence/fruits/\nFruitRepository"]
     E[(PostgreSQL)]
 
     A --> B --> C
@@ -123,7 +126,7 @@ Ejemplo: agregar `climates`.
 | Use case | `create-fruit.use-case.ts` | `CreateFruitUseCase` |
 | Command | `create-fruit.command.ts` | `CreateFruitCommand` |
 | ORM entity | `fruit.orm-entity.ts` | `FruitOrmEntity` |
-| Repository impl | `postgres-fruit.repository.ts` | `PostgresFruitRepository` |
+| Repository impl | `fruit.repository.ts` | `FruitRepository` |
 | Mapper | `fruit.mapper.ts` | `FruitMapper` |
 | Controller | `fruits.controller.ts` | `FruitsController` |
 | Request DTO | `create-fruit.request.dto.ts` | `CreateFruitRequestDto` |
@@ -135,18 +138,8 @@ En layer-first, la composición de dependencias se centraliza en un solo módulo
 
 ```typescript
 @Module({
-  imports: [DatabaseModule, ConfigModule],
-  controllers: [
-    FruitsController,
-    FamiliesController,
-    // ...
-  ],
-  providers: [
-    CreateFruitUseCase,
-    GetFruitByIdUseCase,
-    { provide: FRUIT_REPOSITORY, useClass: PostgresFruitRepository },
-    // ...
-  ],
+  imports: [DatabaseModule, ConfigModule, HealthModule, FamiliesModule, FruitsModule],
+  // Catálogos: DepartmentsModule, ClimatesModule, ...
 })
 export class AppModule {}
 ```

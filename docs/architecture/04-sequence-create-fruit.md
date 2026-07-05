@@ -1,16 +1,18 @@
 # Secuencia — CreateFruit
 
-Flujo completo del caso de uso `CreateFruit`, incluyendo validación de FKs y asignación de relaciones N:M.
+Flujo completo del caso de uso `CreateFruit`, incluyendo validación de FKs N:M, `FruitRelationsValidator`, re-fetch post-create y envelope de respuesta.
 
 ## Participantes
 
 | Participante | Capa | Responsabilidad |
 |--------------|------|-----------------|
 | `Client` | Externo | Envía POST con datos de la fruta |
-| `FruitsController` | interfaces | Valida DTO, delega al use case, mapea respuesta |
-| `CreateFruitUseCase` | application | Orquesta reglas, valida FKs vía puertos, persiste |
+| `FruitsController` | interfaces | Valida DTO, delega al use case, re-fetch, envelope |
+| `CreateFruitUseCase` | application | Orquesta reglas, valida FKs, persiste |
+| `FruitRelationsValidator` | application | Valida que IDs N:M existen |
+| `GetFruitByIdUseCase` | application | Re-fetch con relaciones anidadas post-create |
 | `FruitRepositoryPort` | domain | Contrato de persistencia |
-| `PostgresFruitRepository` | infrastructure | Implementación TypeORM + transacción N:M |
+| `FruitRepository` | infrastructure | Implementación TypeORM + transacción N:M |
 | `FamilyRepositoryPort` | domain | Verificar que `familyId` existe |
 | `PostgreSQL` | infrastructure | Almacenamiento |
 
@@ -20,99 +22,78 @@ Flujo completo del caso de uso `CreateFruit`, incluyendo validación de FKs y as
 sequenceDiagram
     participant Client
     participant Controller as FruitsController<br/>(interfaces)
-    participant UseCase as CreateFruitUseCase<br/>(application)
+    participant CreateUC as CreateFruitUseCase<br/>(application)
+    participant Validator as FruitRelationsValidator<br/>(application)
+    participant GetUC as GetFruitByIdUseCase<br/>(application)
     participant FamilyRepo as FamilyRepositoryPort<br/>(domain)
     participant FruitRepo as FruitRepositoryPort<br/>(domain)
-    participant PGRepo as PostgresFruitRepository<br/>(infrastructure)
+    participant PGRepo as FruitRepository<br/>(infrastructure)
     participant DB as PostgreSQL
 
     Client->>Controller: POST /api/v1/fruits<br/>CreateFruitRequestDto
     Controller->>Controller: Validate DTO (class-validator)
-    Controller->>UseCase: execute(CreateFruitCommand)
-    UseCase->>FamilyRepo: exists(familyId)
-    FamilyRepo-->>UseCase: true
-    UseCase->>UseCase: Build Fruit entity (domain rules)
-    UseCase->>FruitRepo: save(fruit, relations)
+    Controller->>CreateUC: execute(CreateFruitCommand)
+    CreateUC->>FamilyRepo: findById(familyId)
+    FamilyRepo-->>CreateUC: Family
+    CreateUC->>CreateUC: Check typeFruit, scientificName unique
+    CreateUC->>Validator: validate(relations)
+    Validator-->>CreateUC: OK
+    CreateUC->>FruitRepo: save(fruit, relations)
     FruitRepo->>PGRepo: (DI resolves implementation)
     PGRepo->>DB: BEGIN TRANSACTION
     PGRepo->>DB: INSERT INTO fruits (...)
     PGRepo->>DB: INSERT INTO fruit_climates (...)
-    PGRepo->>DB: INSERT INTO fruit_departments (...)
     PGRepo->>DB: COMMIT
-    DB-->>PGRepo: persisted fruit
-    PGRepo-->>UseCase: Fruit (domain entity)
-    UseCase-->>Controller: Fruit
-    Controller->>Controller: Map to FruitResponseDto
-    Controller-->>Client: 201 Created + FruitResponseDto
+    PGRepo-->>CreateUC: Fruit (domain entity)
+    CreateUC-->>Controller: saved Fruit
+    Controller->>GetUC: execute(GetFruitByIdCommand)
+    GetUC->>FruitRepo: findWithRelationsById(id)
+    FruitRepo-->>GetUC: FruitWithRelations
+    GetUC-->>Controller: FruitWithRelations
+    Controller->>Controller: buildApiSuccessResponse(FruitResponseDto)
+    Controller-->>Client: 201 { success, data, statusCode }
 ```
 
 ## Flujo paso a paso
 
 ### 1. Entrada HTTP (`interfaces/`)
 
-```
-POST /api/v1/fruits
-Content-Type: application/json
-
-{
-  "commonName": "Granadilla",
-  "scientificName": "Passiflora ligularis",
-  "description": "Fruta de la familia Passifloraceae",
-  "familyId": 1,
-  "typeFruitId": 2,
-  "climateIds": [1],
-  "departmentIds": [5, 11],
-  "naturalRegionIds": [2],
-  "harvestSeasonIds": [3]
-}
-```
-
-El controller:
-1. Recibe y valida el `CreateFruitRequestDto`.
-2. Convierte el DTO a `CreateFruitCommand`.
-3. Llama a `CreateFruitUseCase.execute(command)`.
-4. Mapea el resultado a `FruitResponseDto`.
-5. Retorna `201 Created`.
+El controller valida el DTO, ejecuta `CreateFruitUseCase`, luego **re-fetch** con `GetFruitByIdUseCase` para devolver relaciones anidadas completas, y envuelve en `{ success, data, statusCode }`.
 
 ### 2. Caso de uso (`application/`)
 
 `CreateFruitUseCase.execute(command)`:
 
-1. Verifica que las FKs existen (`familyId`, `typeFruitId`) consultando los puertos correspondientes.
-2. Valida reglas de dominio (nombres no vacíos, IDs de relaciones no duplicados).
-3. Construye la entidad `Fruit` (dominio puro).
-4. Llama a `FruitRepositoryPort.save(fruit, relations)`.
-5. Retorna la entidad persistida.
+1. Verifica `familyId` y `typeFruitId` existen.
+2. Verifica `scientificName` no duplicado.
+3. Delega validación N:M a `FruitRelationsValidator.validate(relations)`.
+4. Construye entidad `Fruit` y persiste vía `FruitRepositoryPort.save()`.
 
 ### 3. Persistencia (`infrastructure/`)
 
-`PostgresFruitRepository.save()`:
+`FruitRepository.save()` abre transacción, inserta fruta y tablas puente, commit/rollback.
 
-1. Abre transacción.
-2. Mapea `Fruit` → `FruitOrmEntity`.
-3. `INSERT INTO fruits`.
-4. `INSERT INTO fruit_climates`, `fruit_departments`, etc. (tablas puente).
-5. Commit (o rollback si falla).
-6. Mapea `FruitOrmEntity` → `Fruit` y retorna.
-
-### 4. Respuesta HTTP
+### 4. Respuesta HTTP (envelope)
 
 ```json
 {
-  "id": 1,
-  "commonName": "Granadilla",
-  "scientificName": "Passiflora ligularis",
-  "description": "Fruta de la familia Passifloraceae",
-  "family": {
+  "success": true,
+  "data": {
     "id": 1,
-    "name": "Passifloraceae",
-    "typePlant": { "id": 3, "name": "Vine" }
+    "commonName": "Granadilla",
+    "scientificName": "Passiflora ligularis",
+    "family": {
+      "id": 1,
+      "name": "Passifloraceae",
+      "typePlant": { "id": 3, "name": "Vine" }
+    },
+    "typeFruit": { "id": 2, "name": "Berry" },
+    "climates": [{ "id": 1, "name": "Tropical" }],
+    "departments": [{ "id": 5, "name": "Cundinamarca", "code": "CUN" }],
+    "createdAt": "2026-06-20T22:00:00.000Z",
+    "updatedAt": "2026-06-20T22:00:00.000Z"
   },
-  "typeFruit": { "id": 2, "name": "Berry" },
-  "climates": [{ "id": 1, "name": "Tropical" }],
-  "departments": [{ "id": 5, "name": "Cundinamarca" }],
-  "createdAt": "2026-06-20T22:00:00.000Z",
-  "updatedAt": "2026-06-20T22:00:00.000Z"
+  "statusCode": 201
 }
 ```
 
@@ -120,42 +101,22 @@ El controller:
 
 | Código | Condición | Origen |
 |--------|-----------|--------|
-| `400 Bad Request` | DTO inválido (campos faltantes, ID inválido) | `interfaces/` (ValidationPipe) |
-| `404 Not Found` | Fruta o FK no existe | `application/` → excepción de dominio |
+| `400 Bad Request` | DTO inválido | `interfaces/` (ValidationPipe) |
+| `404 Not Found` | FK no existe | `application/` → excepción de dominio |
 | `409 Conflict` | `scientificName` duplicado | `DuplicateFruitScientificNameException` |
 | `422 Unprocessable Entity` | Regla de dominio incumplida | `InvalidFruitDataException` |
-| `500 Internal Server Error` | Error de BD no controlado | Global exception filter |
 
-## Archivos involucrados (layer-first)
+## Archivos involucrados
 
 ```
-interfaces/http/fruits/
-├── fruits.controller.ts
-└── dto/create-fruit.request.dto.ts
-
-application/fruits/use-cases/create-fruit/
-├── create-fruit.use-case.ts
-└── create-fruit.command.ts
-
-domain/fruits/
-├── entities/fruit.entity.ts
-├── repositories/
-│   ├── fruit.repository.port.ts
-│   └── fruit.repository.token.ts
-└── exceptions/fruit.exceptions.ts
-
-interfaces/http/filters/
-└── domain-exception.filter.ts
-
-infrastructure/persistence/fruits/
-├── fruit.orm-entity.ts
-├── fruit.mapper.ts
-└── postgres-fruit.repository.ts
+interfaces/http/fruits/fruits.controller.ts
+application/fruits/use-cases/create-fruit/create-fruit.use-case.ts
+application/fruits/services/fruit-relations.validator.ts
+application/fruits/use-cases/get-fruit-by-id/get-fruit-by-id.use-case.ts
+infrastructure/persistence/fruits/fruit.repository.ts
 ```
 
 ## Referencias
 
 - Contrato API: [`../api/endpoints.md`](../api/endpoints.md)
-- Guía de implementación: [`../guides/01-vertical-slice-fruits.md`](../guides/01-vertical-slice-fruits.md)
-- Patrones aplicados: [`05-design-patterns.md`](./05-design-patterns.md)
-- Excepciones de dominio: [`06-domain-exceptions.md`](./06-domain-exceptions.md)
+- Patrones: [`05-design-patterns.md`](./05-design-patterns.md)

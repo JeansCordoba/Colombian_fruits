@@ -1,6 +1,6 @@
 # Contrato API — MVP
 
-Endpoints definidos **antes** de implementar controllers. Base path: `/api/v1`.
+Endpoints implementados. Base path: `/api/v1`.
 
 ## Convenciones generales
 
@@ -9,9 +9,12 @@ Endpoints definidos **antes** de implementar controllers. Base path: `/api/v1`.
 | Base URL | `/api/v1` |
 | IDs | `integer` (auto-increment) |
 | Paginación | `?page=1&limit=20` (default limit: 20, max: 100) |
+| Éxito | `{ "success": true, "data": ..., "statusCode": number }` |
+| Éxito paginado | Añade `"meta": { total, page, limit, totalPages }` |
 | Errores | `{ "statusCode": number, "message": string \| string[], "error": string }` |
 | Timestamps | ISO 8601 UTC |
 | Naming JSON | `camelCase` |
+| DELETE | Soft delete (`deleted_at`) |
 
 ## Health check
 
@@ -19,7 +22,8 @@ Endpoints definidos **antes** de implementar controllers. Base path: `/api/v1`.
 |--------|------|-------------|------|
 | `GET` | `/health` | Estado del servicio y conexión BD | No |
 
-**Response 200:**
+**Response 200** (sin envelope — fuera de `api/v1`):
+
 ```json
 {
   "status": "ok",
@@ -30,13 +34,14 @@ Endpoints definidos **antes** de implementar controllers. Base path: `/api/v1`.
 
 ---
 
-## Fruits — vertical slice MVP
+## Fruits
 
 ### `POST /api/v1/fruits`
 
 Crea una fruta con relaciones N:M.
 
 **Request body:**
+
 ```json
 {
   "commonName": "Granadilla",
@@ -51,16 +56,32 @@ Crea una fruta con relaciones N:M.
 }
 ```
 
-**Validaciones:**
-- `commonName`: required, string, 1–50 chars
-- `scientificName`: required, string, 1–50 chars
-- `description`: optional, string
-- `familyId`, `typeFruitId`: required, integer, must exist
-- `climateIds`, `departmentIds`, `naturalRegionIds`, `harvestSeasonIds`: optional, array of integers, each must exist
+**Response 201:**
 
-> `TypePlant` se obtiene indirectamente vía `family.typePlantId` — no se envía en el request.
-
-**Response 201:** `FruitResponseDto` (ver abajo)
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "commonName": "Granadilla",
+    "scientificName": "Passiflora ligularis",
+    "description": "Fruta de la familia Passifloraceae",
+    "family": {
+      "id": 1,
+      "name": "Passifloraceae",
+      "typePlant": { "id": 3, "name": "Vine" }
+    },
+    "typeFruit": { "id": 2, "name": "Berry" },
+    "climates": [{ "id": 1, "name": "Tropical" }],
+    "departments": [{ "id": 5, "name": "Cundinamarca", "code": "CUN" }],
+    "naturalRegions": [{ "id": 2, "name": "Andean" }],
+    "harvestSeasons": [{ "id": 3, "startMonth": 1, "endMonth": 12 }],
+    "createdAt": "2026-06-20T22:00:00.000Z",
+    "updatedAt": "2026-06-20T22:00:00.000Z"
+  },
+  "statusCode": 201
+}
+```
 
 **Errores:** `400` (validación), `404` (FK no existe), `409` (scientificName duplicado)
 
@@ -68,57 +89,43 @@ Crea una fruta con relaciones N:M.
 
 ### `GET /api/v1/fruits/:id`
 
-Obtiene una fruta por ID con relaciones anidadas.
-
 **Response 200:**
+
 ```json
 {
-  "id": 1,
-  "commonName": "Granadilla",
-  "scientificName": "Passiflora ligularis",
-  "description": "Fruta de la familia Passifloraceae",
-  "family": {
+  "success": true,
+  "data": {
     "id": 1,
-    "name": "Passifloraceae",
-    "typePlant": { "id": 3, "name": "Vine" }
+    "commonName": "Granadilla",
+    "scientificName": "Passiflora ligularis",
+    "family": {
+      "id": 1,
+      "name": "Passifloraceae",
+      "typePlant": { "id": 3, "name": "Vine" }
+    },
+    "typeFruit": { "id": 2, "name": "Berry" },
+    "climates": [{ "id": 1, "name": "Tropical" }],
+    "departments": [{ "id": 5, "name": "Cundinamarca", "code": "CUN" }],
+    "naturalRegions": [{ "id": 2, "name": "Andean" }],
+    "harvestSeasons": [{ "id": 3, "startMonth": 1, "endMonth": 12 }],
+    "createdAt": "2026-06-20T22:00:00.000Z",
+    "updatedAt": "2026-06-20T22:00:00.000Z"
   },
-  "typeFruit": {
-    "id": 2,
-    "name": "Berry"
-  },
-  "climates": [
-    { "id": 1, "name": "Tropical" }
-  ],
-  "departments": [
-    { "id": 5, "name": "Cundinamarca" }
-  ],
-  "naturalRegions": [
-    { "id": 2, "name": "Andean" }
-  ],
-  "harvestSeasons": [
-    { "id": 3, "startMonth": 1, "endMonth": 12 }
-  ],
-  "createdAt": "2026-06-20T22:00:00.000Z",
-  "updatedAt": "2026-06-20T22:00:00.000Z"
+  "statusCode": 200
 }
 ```
-
-**Errores:** `404` (fruta no encontrada)
 
 ---
 
 ### `GET /api/v1/fruits`
 
-Listado paginado de frutas.
-
-**Query params:**
-- `page` (default: 1)
-- `limit` (default: 20, max: 100)
-- `search` (optional) — busca en `commonName` y `scientificName`
+Listado paginado. Query: `page`, `limit`, `search` (opcional).
 
 **Response 200:**
+
 ```json
 {
+  "success": true,
   "data": [
     {
       "id": 1,
@@ -128,39 +135,51 @@ Listado paginado de frutas.
       "createdAt": "2026-06-20T22:00:00.000Z"
     }
   ],
-  "meta": {
-    "total": 42,
-    "page": 1,
-    "limit": 20,
-    "totalPages": 3
-  }
+  "meta": { "total": 42, "page": 1, "limit": 20, "totalPages": 3 },
+  "statusCode": 200
 }
 ```
 
 ---
 
-## Catálogos — CRUD básico (fase 2)
+### `PUT /api/v1/fruits/:id`
 
-Mismo patrón para todos los recursos de catálogo. Ejemplo con `families`:
+Actualiza fruta y reemplaza relaciones N:M.
+
+**Response 200:** mismo envelope que GET con `statusCode: 200`.
+
+---
+
+### `DELETE /api/v1/fruits/:id`
+
+Soft delete. **Response 204** sin body.
+
+---
+
+## Catálogos — CRUD
+
+Mismo patrón para: `type-plants`, `type-fruits`, `climates`, `departments`, `natural-regions`, `harvest-seasons`, `families`.
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| `POST` | `/api/v1/families` | Crear familia |
-| `GET` | `/api/v1/families/:id` | Obtener por ID |
-| `GET` | `/api/v1/families` | Listar paginado |
-| `PUT` | `/api/v1/families/:id` | Actualizar |
-| `DELETE` | `/api/v1/families/:id` | Eliminar |
+| `POST` | `/api/v1/{resource}` | Crear |
+| `GET` | `/api/v1/{resource}/:id` | Obtener por ID |
+| `GET` | `/api/v1/{resource}` | Listar paginado |
+| `PUT` | `/api/v1/{resource}/:id` | Actualizar |
+| `DELETE` | `/api/v1/{resource}/:id` | Soft delete (204) |
 
-Recursos con el mismo patrón:
+### Request — `departments`
 
-- `/api/v1/type-plants`
-- `/api/v1/type-fruits`
-- `/api/v1/climates`
-- `/api/v1/departments`
-- `/api/v1/natural-regions`
-- `/api/v1/harvest-seasons`
+```json
+{
+  "name": "Antioquia",
+  "code": "ANT"
+}
+```
 
-### Request body — `families`
+`code` se normaliza a mayúsculas (máx. 4 caracteres).
+
+### Request — `families`
 
 ```json
 {
@@ -169,38 +188,54 @@ Recursos con el mismo patrón:
 }
 ```
 
-### Request body — catálogos simples (`type-plants`, `type-fruits`, `climates`, `departments`, `natural-regions`)
+### Response — `families` (envelope)
 
 ```json
 {
-  "name": "Tropical"
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Passifloraceae",
+    "typePlant": { "id": 3, "name": "Vine" },
+    "createdAt": "2026-06-20T22:00:00.000Z",
+    "updatedAt": "2026-06-20T22:00:00.000Z"
+  },
+  "statusCode": 200
 }
 ```
 
-### Response — `families`
+### Response — catálogos simples (envelope)
 
 ```json
 {
-  "id": 1,
-  "name": "Passifloraceae",
-  "typePlant": { "id": 3, "name": "Vine" },
-  "createdAt": "2026-06-20T22:00:00.000Z",
-  "updatedAt": "2026-06-20T22:00:00.000Z"
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Tropical",
+    "createdAt": "2026-06-20T22:00:00.000Z",
+    "updatedAt": "2026-06-20T22:00:00.000Z"
+  },
+  "statusCode": 200
 }
 ```
 
-### Response genérico — catálogos simples
+### Response — `departments` (incluye `code`)
 
 ```json
 {
-  "id": 1,
-  "name": "Tropical",
-  "createdAt": "2026-06-20T22:00:00.000Z",
-  "updatedAt": "2026-06-20T22:00:00.000Z"
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Antioquia",
+    "code": "ANT",
+    "createdAt": "2026-06-20T22:00:00.000Z",
+    "updatedAt": "2026-06-20T22:00:00.000Z"
+  },
+  "statusCode": 200
 }
 ```
 
-**Excepción — `harvest-seasons`:** solo incluye `startMonth` (1–12) y `endMonth` (1–12). No tiene campo `name`.
+**Excepción — `harvest-seasons`:** solo `startMonth` (1–12) y `endMonth` (1–12). Sin campo `name`.
 
 ---
 
@@ -208,13 +243,12 @@ Recursos con el mismo patrón:
 
 | Fase | Endpoints | Estado |
 |------|-----------|--------|
-| **MVP (vertical slice)** | `POST /fruits`, `GET /fruits/:id`, `GET /fruits`, `GET /health` | Por implementar |
-| **Fase 2** | CRUD catálogos (families, climates, etc.) | Por implementar |
-| **Fase 3** | `PUT /fruits/:id`, `DELETE /fruits/:id` | Por implementar |
-| **Fase 4** | Filtros avanzados (`?climate=`, `?department=`) | Por implementar |
+| MVP vertical slice | `POST/GET /fruits`, `GET /health` | ✅ |
+| Catálogos CRUD | 6 recursos + families | ✅ |
+| Fruits update/delete | `PUT/DELETE /fruits/:id` | ✅ |
+| Filtros avanzados | `?climate=`, `?department=` | ⬜ Pendiente |
 
 ## Referencias
 
 - Secuencia CreateFruit: [`../architecture/04-sequence-create-fruit.md`](../architecture/04-sequence-create-fruit.md)
 - ERD: [`../database/schema.dbml`](../database/schema.dbml)
-- Guía vertical slice: [`../guides/01-vertical-slice-fruits.md`](../guides/01-vertical-slice-fruits.md)

@@ -4,99 +4,111 @@ Seguimiento del código construido vs. la arquitectura documentada.
 
 ## Estructura de código
 
-Raíz actual del backend:
-
 ```
 src/
-├── domain/               ✅ iniciado
-├── application/          ✅ use cases fruits
-├── infrastructure/       ← pendiente
-└── interfaces/           ← pendiente
+├── domain/               ✅ catálogos, families, fruits
+├── application/          ✅ use cases + tests unitarios
+├── infrastructure/       ✅ TypeORM, config, repositorios, migraciones
+└── interfaces/           ✅ HTTP (controllers, DTOs, filtros)
 
-Raíz del proyecto (tooling):
-├── package.json          ✅ scripts build / typecheck
-├── tsconfig.json         ✅ TypeScript + decoradores NestJS
-├── tsconfig.build.json   ✅ build a dist/
-├── nest-cli.json         ✅ preparado para bootstrap NestJS
-└── pnpm-lock.yaml
+Raíz del proyecto:
+├── package.json          ✅ scripts build / typecheck / test:e2e / migration:*
+├── README.md             ✅ guía de instalación completa
+├── docker-compose.yml    ✅ PostgreSQL + API
+├── Dockerfile            ✅ migraciones al arranque
+└── .github/workflows/    ✅ CI (typecheck, test, build, Docker)
 ```
-
-> El código vive en `src/` con capas layer-first (no `src/nestjs-api/`).
 
 ---
 
-## Configuración de compilación
+## Completado — Bootstrap
 
-| Archivo | Propósito |
-|---------|-----------|
-| `package.json` | Dependencias NestJS + scripts `pnpm run typecheck` / `pnpm run build` |
-| `tsconfig.json` | TypeScript estricto, `experimentalDecorators`, `emitDecoratorMetadata`, `rootDir: src` |
-| `tsconfig.build.json` | Compila a `dist/` (excluye tests) |
-| `nest-cli.json` | Preparado para cuando exista `main.ts` y bootstrap NestJS |
-| `.vscode/settings.json` | IDE reconoce decoradores y strict mode |
+| Componente | Estado |
+|------------|--------|
+| `main.ts` | ✅ ValidationPipe, Swagger, CORS, global prefix `api/v1` (excluye `/health`) |
+| `interfaces/app.module.ts` | ✅ Todos los módulos HTTP registrados |
+| `interfaces/http/health/` | ✅ `GET /health` con ping `SELECT 1` |
+| CORS configurable | ✅ `CORS_ORIGIN` en config + `.env.example` |
+| Tests e2e | ✅ Health + envelope de catálogo (Supertest) |
 
-Comandos:
+---
+
+## Completado — Catálogos (6 recursos)
+
+CRUD completo con soft delete, paginación y contrato `{ success, data, statusCode }`:
+
+- `departments`, `type-plants`, `type-fruits`, `climates`, `natural-regions`, `harvest-seasons`
+
+Patrón de referencia: `src/interfaces/http/climates/`
+
+---
+
+## Completado — `families`
+
+| Capa | Estado |
+|------|--------|
+| Domain | ✅ `Family`, `FamilyWithTypePlant`, excepciones `DomainException`, puerto con paginación/soft delete |
+| Application | ✅ 5 use cases + tests unitarios |
+| Infrastructure | ✅ ORM, mapper, repository |
+| Interfaces HTTP | ✅ Controller, DTOs, Swagger inline, `FamiliesModule` |
+
+---
+
+## Completado — `fruits` (vertical slice)
+
+| Capa | Estado |
+|------|--------|
+| Domain | ✅ Entidad, `FruitWithRelations`, read models, puerto N:M, excepciones |
+| Application | ✅ Create, Get, List, Update, Delete + `FruitRelationsValidator` + tests |
+| Infrastructure | ✅ ORM + tablas puente (`fruit_climates`, `fruit_departments`, etc.), repository transaccional |
+| Interfaces HTTP | ✅ CRUD completo, DTOs anidados, re-fetch post-create vía `GetFruitByIdUseCase` |
+
+Respuesta GET incluye: `family.typePlant`, `typeFruit`, `climates[]`, `departments[]`, `naturalRegions[]`, `harvestSeasons[]`.
+
+---
+
+## Migraciones
+
+| Tema | Estado | Notas |
+|------|--------|-------|
+| TypeORM migrations | ✅ Completado | `InitialSchema` en `src/infrastructure/persistence/migrations/` |
+| `data-source.ts` + CLI | ✅ Completado | `pnpm migration:run`, `migration:revert`, `migration:show` |
+| `DATABASE_SYNCHRONIZE=false` | ✅ Completado | `.env.example`, `docker-compose.yml`, producción |
+| Docker startup | ✅ Completado | `run-migrations.js` antes de `main.js` |
+
+Tras `pnpm migration:run` las tablas quedan **vacías**. Poblar catálogos vía API (Swagger/Postman).
+
+---
+
+## Pendiente — fase `develop`
+
+| Tema | Estado | Notas |
+|------|--------|-------|
+| Seed script | ⬜ Pendiente (usuario) | El usuario recolectará datos e implementará el script |
+| Despliegue Neon + hosting API | ⬜ Pendiente | Ver ADR 002 y wiki Roadmap |
+| Filtros avanzados en fruits | ⬜ Pendiente | `?climate=`, `?department=` |
+
+---
+
+## Comandos de verificación
 
 ```bash
-pnpm run typecheck   # valida tipos sin generar archivos
-pnpm run build       # compila src/ → dist/
+pnpm typecheck
+pnpm test:ci
+pnpm build
+pnpm test:e2e
+docker compose up -d postgres
+pnpm migration:run
+pnpm start:dev
+# Swagger: http://localhost:3000/api/docs
+# Health:  http://localhost:3000/health
 ```
-
-## Completado — `domain/fruits/` (+ families, type-fruits)
-
-| Archivo | Estado | Alineación con docs |
-|---------|--------|---------------------|
-| `entities/fruit.entity.ts` | ✅ Implementado | ✅ Coincide con ERD y guía vertical slice |
-| `repositories/fruit.repository.port.ts` | ✅ Implementado | ✅ Incluye `FruitRelations`, `save`, `findById`, `findByScientificName`, `findAll` |
-| `repositories/fruit.repository.token.ts` | ✅ Implementado | ✅ Token `FRUIT_REPOSITORY` para DI |
-| `exceptions/fruit.exceptions.ts` | ✅ Implementado | ✅ Agrupado por contexto (convención acordada) |
-
-### Excepciones implementadas
-
-- `FruitNotFoundException`
-- `FruitScientificNameNotFoundException`
-- `DuplicateFruitScientificNameException`
-- `InvalidFruitDataException`
-
-Ver detalle en [`../architecture/06-domain-exceptions.md`](../architecture/06-domain-exceptions.md).
-
----
-
-## Completado — `application/fruits/`
-
-| Archivo | Estado |
-|---------|--------|
-| `use-cases/create-fruit/create-fruit.command.ts` | ✅ |
-| `use-cases/create-fruit/create-fruit.use-case.ts` | ✅ |
-| `use-cases/get-fruit-by-id/get-fruit-by-id.command.ts` | ✅ |
-| `use-cases/get-fruit-by-id/get-fruit-by-id.use-case.ts` | ✅ |
-| `use-cases/create-fruit/create-fruit.use-case.spec.ts` | ✅ |
-| `use-cases/get-fruit-by-id/get-fruit-by-id.use-case.spec.ts` | ✅ |
-
----
-
-## Pendiente — siguiente en el vertical slice
-
-| Capa | Qué falta |
-|------|-----------|
-| `infrastructure/persistence/fruits/` | ORM entity, mapper, `PostgresFruitRepository` |
-| `interfaces/http/fruits/` | Controller, DTOs, `DomainExceptionFilter` |
-| Bootstrap | NestJS `main.ts`, `app.module.ts`, Docker PostgreSQL |
-
----
-
-## Orden recomendado (de adentro hacia afuera)
-
-1. ✅ `domain/fruits/` (+ families, type-fruits)
-2. ✅ `application/fruits/` — CreateFruit + GetFruitById + tests
-3. ✅ Config TypeScript (`tsconfig`, scripts `build` / `typecheck`)
-4. ⬜ `infrastructure/persistence/fruits/`
-5. ⬜ `interfaces/http/fruits/` + exception filter
-6. ⬜ Bootstrap NestJS (`main.ts`, `app.module.ts`)
 
 ---
 
 ## Referencias
 
-- Guía paso a paso: [`01-vertical-slice-fruits.md`](./01-vertical-slice-fruits.md)
+- Contrato API: [`../api/endpoints.md`](../api/endpoints.md)
+- Guía vertical slice: [`01-vertical-slice-fruits.md`](./01-vertical-slice-fruits.md)
+- Migraciones: [`../wiki/Database-Migrations.md`](../wiki/Database-Migrations.md)
 - Excepciones: [`../architecture/06-domain-exceptions.md`](../architecture/06-domain-exceptions.md)

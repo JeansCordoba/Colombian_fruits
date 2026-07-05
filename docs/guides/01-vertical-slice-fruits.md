@@ -1,5 +1,7 @@
 # Guía — Vertical slice: Fruits
 
+> **Nota:** Esta guía es **histórica** — documenta el proceso de implementación paso a paso. Para el estado actual del código, consulta [`02-implementation-status.md`](./02-implementation-status.md).
+
 Implementación paso a paso del primer flujo completo (`CreateFruit` + `GetFruitById`) siguiendo la estructura **layer-first**.
 
 ## Objetivo

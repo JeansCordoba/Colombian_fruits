@@ -1,21 +1,24 @@
 # Colombian Fruits API — Documentación
 
-Documentación pre-código del backend **NestJS + PostgreSQL** como caso de estudio de **Clean Architecture** con estructura **layer-first** (organizada por capas, no por módulos NestJS).
+Documentación del backend **NestJS + PostgreSQL** implementado como caso de estudio de **Clean Architecture** con estructura **layer-first**.
+
+**Estado:** MVP completo en `main` — CRUD de catálogos, families, fruits (N:M), health check, migraciones TypeORM, tests unitarios y e2e.
 
 ## Orden de lectura recomendado
 
 1. [Bounded Contexts](./architecture/01-bounded-contexts.md) — módulos del dominio y sus relaciones
-2. [Capas Clean Architecture](./architecture/02-clean-architecture-layers.md) — reglas de dependencia y qué va en cada capa
+2. [Capas Clean Architecture](./architecture/02-clean-architecture-layers.md) — reglas de dependencia
 3. [Estructura layer-first](./architecture/03-layer-first-structure.md) — plantilla de carpetas por capa
-4. [Secuencia CreateFruit](./architecture/04-sequence-create-fruit.md) — flujo completo del primer caso de uso
-5. [Patrones de diseño](./architecture/05-design-patterns.md) — matriz de patrones con ejemplos del dominio
-6. [Excepciones de dominio](./architecture/06-domain-exceptions.md) — convenciones, quién lanza qué, mapeo HTTP
-7. [ERD / schema.dbml](./database/schema.dbml) — fuente de verdad del modelo de datos (alineado con [`colombian_fruits.png`](./colombian_fruits.png))
-8. [Glosario botánico](./database/glossary.md) — términos del dominio
-9. [Contrato API MVP](./api/endpoints.md) — endpoints antes de codificar controllers
-10. [Checklist de arranque](./guides/00-project-kickoff-checklist.md) — criterio "listo para codificar"
-11. [Guía vertical slice](./guides/01-vertical-slice-fruits.md) — implementación paso a paso de `fruits`
-12. [Estado de implementación](./guides/02-implementation-status.md) — qué código ya existe en `src/`
+4. [Diagramas Mermaid](./architecture/diagrams/) — contexto, capas, ERD, módulos NestJS, Docker, ramas Git
+5. [Secuencia CreateFruit](./architecture/04-sequence-create-fruit.md) — flujo completo del caso de uso principal
+6. [Patrones de diseño](./architecture/05-design-patterns.md) — matriz de patrones con ejemplos del dominio
+7. [Excepciones de dominio](./architecture/06-domain-exceptions.md) — convenciones y mapeo HTTP
+8. [ERD / schema.dbml](./database/schema.dbml) — modelo de datos versionado
+9. [Glosario botánico](./database/glossary.md) — términos del dominio
+10. [Contrato API](./api/endpoints.md) — endpoints con envelope HTTP
+11. [Estado de implementación](./guides/02-implementation-status.md) — qué código existe en `src/`
+12. [Wiki operativa](./wiki/Home.md) — guías de instalación, migraciones, testing
+13. [Wiki de estudio](./wiki/Study/Home.md) — aprendizaje para desarrolladores junior
 
 ## Architecture Decision Records (ADRs)
 
@@ -41,19 +44,35 @@ docs/
 │   ├── 04-sequence-create-fruit.md
 │   ├── 05-design-patterns.md
 │   ├── 06-domain-exceptions.md
+│   ├── diagrams/                      # 6 diagramas Mermaid
 │   └── adr/
 ├── api/
 │   └── endpoints.md
-└── guides/
-    ├── 00-project-kickoff-checklist.md
-    ├── 01-vertical-slice-fruits.md
-    └── 02-implementation-status.md
+├── guides/
+│   ├── 00-project-kickoff-checklist.md
+│   ├── 01-vertical-slice-fruits.md
+│   └── 02-implementation-status.md
+└── wiki/                              # Fuente de verdad para GitHub Wiki
+    ├── Home.md
+    ├── Installation.md
+    ├── Study/                         # Sección de aprendizaje
+    └── ...
 ```
 
-## Código actual
+## Wiki y diagramas
 
-El dominio de `fruits` ya está iniciado en `src/domain/fruits/`. Ver [estado de implementación](./guides/02-implementation-status.md).
+- **Wiki en repo:** [`wiki/Home.md`](./wiki/Home.md) — guías operativas y sección Study para juniors
+- **GitHub Wiki:** https://github.com/JeansCordoba/Colombian_fruits/wiki (copia publicada desde `docs/wiki/`)
+- **Diagramas:** [`architecture/diagrams/`](./architecture/diagrams/) — renderizables en GitHub
 
-## Criterio "listo para codificar"
+## Criterio "MVP completo en main"
 
-La documentación base está completa. El código sigue el vertical slice documentado en `src/` con estructura layer-first.
+- [x] CRUD completo: 6 catálogos + families + fruits
+- [x] Relaciones N:M en fruits (climates, departments, natural-regions, harvest-seasons)
+- [x] Contrato HTTP con envelope `{ success, data, statusCode }`
+- [x] Soft delete en catálogos y agregados
+- [x] Migraciones TypeORM (`DATABASE_SYNCHRONIZE=false`)
+- [x] Tests unitarios + e2e
+- [x] Swagger + health check
+- [ ] Seed de datos — pendiente (usuario, rama `develop`)
+- [ ] Despliegue Neon + hosting — pendiente (rama `develop`)

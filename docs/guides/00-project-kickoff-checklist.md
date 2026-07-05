@@ -2,7 +2,7 @@
 
 Completa los ítems obligatorios de documentación antes de avanzar con código en `src/`.
 
-> El dominio de `fruits` ya está iniciado. Ver [`02-implementation-status.md`](./02-implementation-status.md).
+> Estado actual del backend: ver [`02-implementation-status.md`](./02-implementation-status.md).
 
 ## Documentación obligatoria
 
@@ -36,32 +36,33 @@ Responde **sí** a cada pregunta antes de continuar:
 
 - [x] Proyecto con `package.json`, pnpm, TypeScript
 - [x] `tsconfig.json` + `tsconfig.build.json` (decoradores NestJS)
-- [ ] `main.ts`, `app.module.ts`, Docker PostgreSQL
+- [x] `main.ts`, `app.module.ts`, Docker PostgreSQL
+- [x] CORS configurable (`CORS_ORIGIN`)
+- [x] `GET /health` con ping a BD
 
 ### Fase 2 — Vertical slice fruits
 
 Seguir [`01-vertical-slice-fruits.md`](./01-vertical-slice-fruits.md):
 
 - [x] `domain/fruits/` — entidad + puerto + token + excepciones
-- [x] `application/fruits/` — CreateFruitUseCase + GetFruitByIdUseCase + tests unitarios
-- [ ] `application/fruits/` — CreateFruitUseCase + GetFruitByIdUseCase
-- [ ] `infrastructure/persistence/fruits/` — ORM entity + mapper + repository
-- [ ] `interfaces/http/fruits/` — controller + DTOs
-- [ ] Test unitario del use case
-- [ ] Primera migración TypeORM
-- [ ] Seed con 3–5 frutas de ejemplo
+- [x] `application/fruits/` — CRUD use cases + validación FKs N:M + tests unitarios
+- [x] `infrastructure/persistence/fruits/` — ORM entity + tablas puente + mapper + repository
+- [x] `interfaces/http/fruits/` — controller + DTOs + Swagger
+- [x] Migración TypeORM (`InitialSchema`) — ver [`02-implementation-status.md`](./02-implementation-status.md)
+- [ ] Seed con datos de ejemplo — **fase futura en `develop`** (usuario implementará)
 
 ### Fase 3 — Catálogos
 
-- [ ] Replicar patrón layer-first en: families, type-plants, type-fruits, climates, departments, natural-regions, harvest-seasons
+- [x] Replicar patrón layer-first en: families, type-plants, type-fruits, climates, departments, natural-regions, harvest-seasons
 
 ### Fase 4 — Calidad y despliegue
 
-- [ ] Tests e2e con Supertest
-- [ ] Swagger (`@nestjs/swagger`)
-- [ ] Deploy: Neon (DB) + Render (API)
+- [x] Tests e2e con Supertest (health + envelope catálogo)
+- [x] Swagger (`@nestjs/swagger`)
+- [ ] Deploy: Neon (DB) + hosting API — **fase futura en `develop`**
 
 ## Referencias
 
 - Índice maestro: [`../README.md`](../README.md)
 - Guía vertical slice: [`01-vertical-slice-fruits.md`](./01-vertical-slice-fruits.md)
+- README raíz del repo: [`../../README.md`](../../README.md)

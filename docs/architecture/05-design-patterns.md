@@ -6,7 +6,7 @@ Matriz de patrones con ejemplos concretos del dominio `Fruit`, cuándo aplicarlo
 
 | Patrón | Tipo | Dónde en el proyecto | Problema que resuelve |
 |--------|------|----------------------|------------------------|
-| **Repository** | Estructural | `domain/fruits/repositories/fruit.repository.port.ts` + `infrastructure/persistence/fruits/postgres-fruit.repository.ts` | Desacoplar dominio de persistencia |
+| **Repository** | Estructural | `domain/fruits/repositories/fruit.repository.port.ts` + `infrastructure/persistence/fruits/fruit.repository.ts` | Desacoplar dominio de persistencia |
 | **Use Case** | Arquitectónico | `application/fruits/use-cases/create-fruit/create-fruit.use-case.ts` | Una acción de negocio = una clase |
 | **Command** | Arquitectónico | `application/fruits/use-cases/create-fruit/create-fruit.command.ts` | Input tipado al use case, sin acoplar a HTTP |
 | **DTO** | Estructural | `interfaces/http/fruits/dto/create-fruit.request.dto.ts` | Contrato HTTP separado del dominio |
@@ -16,7 +16,7 @@ Matriz de patrones con ejemplos concretos del dominio `Fruit`, cuándo aplicarlo
 | **Strategy** | Comportamiento | `application/fruits/strategies/fruit-search.strategy.ts` (fase 2) | Algoritmos de búsqueda intercambiables |
 | **Specification** | Comportamiento | `domain/fruits/specifications/fruit-by-climate.spec.ts` (fase 2) | Filtros reutilizables de dominio |
 | **Decorator** | Estructural | NestJS Guards, Interceptors, Pipes, Exception Filters | Cross-cutting (validation, logging, error mapping) |
-| **Unit of Work** | Comportamental | Transacción en `PostgresFruitRepository.save()` | Consistencia en tablas puente N:M |
+| **Unit of Work** | Comportamental | Transacción en `FruitRepository.save()` | Consistencia en tablas puente N:M |
 
 ## Ejemplos concretos por patrón
 
@@ -29,9 +29,9 @@ export interface FruitRepositoryPort {
   findById(id: string): Promise<Fruit | null>;
 }
 
-// infrastructure/persistence/fruits/postgres-fruit.repository.ts
+// infrastructure/persistence/fruits/fruit.repository.ts
 @Injectable()
-export class PostgresFruitRepository implements FruitRepositoryPort {
+export class FruitRepository implements FruitRepositoryPort {
   async save(fruit: Fruit, relations: FruitRelations): Promise<Fruit> {
     // TypeORM transaction + bridge tables
   }
@@ -76,7 +76,7 @@ export class FruitMapper {
 // interfaces/app.module.ts
 providers: [
   CreateFruitUseCase,
-  { provide: FRUIT_REPOSITORY, useClass: PostgresFruitRepository },
+  { provide: FRUIT_REPOSITORY, useClass: FruitRepository },
 ]
 ```
 

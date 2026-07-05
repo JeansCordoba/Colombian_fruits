@@ -14,6 +14,7 @@ Table type_plants {
   name varchar(50) [not null]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   Note: 'Plant growth type (tree, shrub, vine, herb)'
 }
@@ -24,6 +25,7 @@ Table families {
   type_plant_id integer [not null, ref: > type_plants.id]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   indexes {
     (type_plant_id)
@@ -37,6 +39,7 @@ Table type_fruits {
   name varchar(50) [not null]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   Note: 'Fruit classification (berry, drupe, aggregate, etc.)'
 }
@@ -48,6 +51,7 @@ Table climates {
   name varchar(50) [not null]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   Note: 'Climate zones (tropical, subtropical, temperate highland, etc.)'
 }
@@ -55,8 +59,10 @@ Table climates {
 Table departments {
   id integer [pk, increment]
   name varchar(50) [not null]
+  code varchar(4) [not null, note: 'Uppercase abbreviation e.g. ANT, CUN']
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   Note: 'Colombian departments where the fruit is cultivated or found'
 }
@@ -66,6 +72,7 @@ Table natural_regions {
   name varchar(100) [not null]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   Note: 'Natural regions (Andean, Amazon, Caribbean, Orinoquía, Pacific)'
 }
@@ -78,6 +85,7 @@ Table harvest_seasons {
   end_month integer [not null, note: '1-12']
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   Note: 'Harvest season window — no name field, defined by month range'
 }
@@ -93,6 +101,7 @@ Table fruits {
   type_fruit_id integer [not null, ref: > type_fruits.id]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+  deleted_at timestamp [note: 'Soft delete — null when active']
 
   indexes {
     common_name
