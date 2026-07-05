@@ -1,7 +1,7 @@
-import { Family } from "../../../domain/families/entities/family.entity";
-import { TypePlantOrmEntity } from "../type-plants/type-plant.orm-entity";
-import { FamilyOrmEntity } from "./family.orm-entity";
-
+import { Family } from '../../../domain/families/entities/family.entity';
+import { FamilyWithTypePlant } from '../../../domain/families/entities/family-with-type-plant';
+import { TypePlantOrmEntity } from '../type-plants/type-plant.orm-entity';
+import { FamilyOrmEntity } from './family.orm-entity';
 
 /**
  * Mapper for the Family entity.
@@ -21,6 +21,19 @@ export class FamilyMapper {
             orm.updatedAt,
         );
     }
+
+    /**
+     * Convert a FamilyOrmEntity with its loaded type plant relation to a FamilyWithTypePlant.
+     * @param orm - The FamilyOrmEntity with the typePlant relation loaded.
+     * @returns The converted FamilyWithTypePlant.
+     */
+    static toDomainWithTypePlant(orm: FamilyOrmEntity): FamilyWithTypePlant {
+        return {
+            family: FamilyMapper.toDomain(orm),
+            typePlantName: orm.typePlant.name,
+        };
+    }
+
     /**
      * Convert a Family to a FamilyOrmEntity.
      * @param domain - The Family to convert.
