@@ -1,4 +1,5 @@
 import { registerAs } from '@nestjs/config';
+import { resolveDatabaseSsl } from './database-ssl.util';
 
 const DEFAULT_DATABASE_PORT = 5432;
 
@@ -9,6 +10,7 @@ export interface DatabaseConfig {
   user: string;
   password: string;
   synchronize: boolean;
+  ssl: ReturnType<typeof resolveDatabaseSsl>;
 }
 
 export const databaseConfig = registerAs(
@@ -20,5 +22,6 @@ export const databaseConfig = registerAs(
     user: process.env.DATABASE_USER ?? 'postgres',
     password: process.env.DATABASE_PASSWORD ?? 'postgres',
     synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
+    ssl: resolveDatabaseSsl(),
   }),
 );

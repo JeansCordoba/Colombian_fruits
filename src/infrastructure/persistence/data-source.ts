@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
+import { resolveDatabaseSsl } from '../config/database-ssl.util';
 import { ORM_ENTITIES } from './orm-entities';
 
 config();
@@ -20,4 +21,5 @@ export const AppDataSource = new DataSource({
     entities: [...ORM_ENTITIES],
     migrations: [`${__dirname}/migrations/*.{ts,js}`],
     synchronize: false,
+    ssl: resolveDatabaseSsl(),
 });

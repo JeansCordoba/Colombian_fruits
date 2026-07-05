@@ -26,6 +26,19 @@ Tables are created empty — there is **no seed script**. Populate master catalo
 
 Full installation and troubleshooting: [Wiki — Installation](https://github.com/JeansCordoba/Colombian_fruits/wiki/Installation).
 
+## Production deploy (Neon + Render)
+
+Free tier: **Neon** (PostgreSQL) + **Render** (Docker Web Service).
+
+Step-by-step guide: [docs/guides/03-deploy-render-neon.md](./docs/guides/03-deploy-render-neon.md)
+
+Quick checklist:
+
+1. Create Neon project → copy `DATABASE_*` credentials.
+2. Render → **New Blueprint** (or Web Service Docker) from this repo.
+3. Set secrets in Render: `DATABASE_HOST`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `CORS_ORIGIN`.
+4. Deploy → verify `https://<app>.onrender.com/health` and `/api/docs`.
+
 ## Documentation
 
 | Audience | Where to go |

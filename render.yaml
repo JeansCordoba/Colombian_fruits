@@ -1,0 +1,36 @@
+# Render Blueprint — Colombian Fruits API
+# Docs: docs/guides/03-deploy-render-neon.md
+#
+# Secrets (DATABASE_*, CORS_ORIGIN) must be set in the Render dashboard
+# after creating the Neon project. Do not commit real credentials.
+
+services:
+  - type: web
+    name: colombian-fruits-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '3000'
+      - key: DATABASE_SYNCHRONIZE
+        value: 'false'
+      - key: DATABASE_SSL
+        value: 'true'
+      - key: DATABASE_PORT
+        value: '5432'
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_NAME
+        sync: false
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

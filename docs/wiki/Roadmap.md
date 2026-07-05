@@ -16,7 +16,7 @@ Trabajo futuro en la rama `develop`. **Fuera de alcance del MVP en `main`.**
 | Tema | Herramienta | Acciones |
 |------|-------------|----------|
 | **Despliegue BD prod** | Neon (PostgreSQL serverless) | Crear proyecto, `DATABASE_URL`, ejecutar migraciones |
-| **Hosting API** | Por definir (Render, Railway, Fly.io) | Dockerfile ya existe; conectar env vars |
+| **Hosting API** | **Render** (Web Service Docker) | Ver [`03-deploy-render-neon.md`](../guides/03-deploy-render-neon.md) |
 | **CI/CD deploy** | `.github/workflows/cd.yml` | Extender cuando exista target |
 | **Seed de datos** | Script propio del usuario | Recolectar datos colombianos e implementar |
 | **Filtros avanzados** | Query params en fruits | `?climate=`, `?department=` |

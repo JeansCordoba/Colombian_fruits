@@ -25,6 +25,7 @@ export class DatabaseModule {
               database: databaseConfig.name,
               autoLoadEntities: false,
               synchronize: false,
+              ssl: databaseConfig.ssl,
             };
           },
         }),

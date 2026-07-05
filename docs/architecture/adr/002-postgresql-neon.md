@@ -36,7 +36,11 @@ El backend necesita una base de datos relacional para modelar entidades botánic
 
 - Requiere Docker instalado para desarrollo local.
 - Neon tiene cold starts en tier gratuito (aceptable para MVP).
-- Variables de conexión distintas entre local y prod (`.env` vs secrets en Render).
+- Variables de conexión distintas entre local y prod (`.env` vs secrets en **Render**).
+
+## Hosting API (decisión complementaria)
+
+- **Render** — Web Service con Docker (`render.yaml` + [`docs/guides/03-deploy-render-neon.md`](../guides/03-deploy-render-neon.md)).
 
 ## Configuración prevista
 
