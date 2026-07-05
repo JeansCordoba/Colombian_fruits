@@ -6,6 +6,7 @@ import { DepartmentsModule } from './http/departments/departments.module';
 import { FamiliesModule } from './http/families/families.module';
 import { FruitsModule } from './http/fruits/fruits.module';
 import { HarvestSeasonsModule } from './http/harvest-seasons/harvest-seasons.module';
+import { HealthModule } from './http/health/health.module';
 import { NaturalRegionsModule } from './http/natural-regions/natural-regions.module';
 import { TypeFruitsModule } from './http/type-fruits/type-fruits.module';
 import { TypePlantsModule } from './http/type-plants/type-plants.module';
@@ -14,6 +15,7 @@ import { TypePlantsModule } from './http/type-plants/type-plants.module';
     imports: [
         ConfigModule,
         DatabaseModule.forRoot(),
+        HealthModule,
         DepartmentsModule,
         TypePlantsModule,
         TypeFruitsModule,

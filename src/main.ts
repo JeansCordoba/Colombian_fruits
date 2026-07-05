@@ -10,7 +10,7 @@ import { UnhandledExceptionFilter } from './interfaces/http/shared/filters/unhan
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule);
-    app.setGlobalPrefix('api/v1');
+    app.setGlobalPrefix('api/v1', { exclude: ['health'] });
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
@@ -35,6 +35,7 @@ async function bootstrap(): Promise<void> {
         .addTag('climates')
         .addTag('natural-regions')
         .addTag('harvest-seasons')
+        .addTag('health')
         .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api/docs', app, document);
