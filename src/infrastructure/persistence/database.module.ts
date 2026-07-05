@@ -2,6 +2,7 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfig } from '../config/database.config';
+import { ORM_ENTITIES } from './orm-entities';
 
 @Module({})
 export class DatabaseModule {
@@ -23,6 +24,7 @@ export class DatabaseModule {
               username: databaseConfig.user,
               password: databaseConfig.password,
               database: databaseConfig.name,
+              entities: [...ORM_ENTITIES],
               autoLoadEntities: false,
               synchronize: false,
               ssl: databaseConfig.ssl,
