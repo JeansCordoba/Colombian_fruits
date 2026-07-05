@@ -10,6 +10,17 @@ import { UnhandledExceptionFilter } from './interfaces/http/shared/filters/unhan
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule);
+    const configService = app.get(ConfigService);
+    const appConfig = configService.get<AppConfig>('app');
+    if (!appConfig) {
+        throw new Error('Application configuration is missing.');
+    }
+    app.enableCors({
+        origin: appConfig.corsOrigin,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: false,
+    });
     app.setGlobalPrefix('api/v1', { exclude: ['health'] });
     app.useGlobalPipes(
         new ValidationPipe({
@@ -35,13 +46,13 @@ async function bootstrap(): Promise<void> {
         .addTag('climates')
         .addTag('natural-regions')
         .addTag('harvest-seasons')
+        .addTag('families', 'Botanical families linked to a type plant')
+        .addTag('fruits')
         .addTag('health')
         .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api/docs', app, document);
-    const configService = app.get(ConfigService);
-    const appConfig = configService.get<AppConfig>('app');
-    const port = appConfig?.port ?? 3000;
+    const port = appConfig.port;
     await app.listen(port);
 }
 

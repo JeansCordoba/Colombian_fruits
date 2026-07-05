@@ -32,6 +32,9 @@ export class EnvironmentVariables {
   @Transform(({ value }: { value: unknown }) => value === 'true' || value === true)
   @IsBoolean()
   DATABASE_SYNCHRONIZE: boolean;
+
+  @IsString()
+  CORS_ORIGIN: string;
 }
 
 /**
@@ -47,6 +50,7 @@ export function validateEnvironment(config: Record<string, unknown>): Environmen
     DATABASE_USER: config.DATABASE_USER ?? 'postgres',
     DATABASE_PASSWORD: config.DATABASE_PASSWORD ?? 'postgres',
     DATABASE_SYNCHRONIZE: config.DATABASE_SYNCHRONIZE ?? 'false',
+    CORS_ORIGIN: config.CORS_ORIGIN ?? 'http://localhost:5173',
   };
   const validatedConfig = plainToInstance(EnvironmentVariables, normalizedConfig, {
     enableImplicitConversion: true,
