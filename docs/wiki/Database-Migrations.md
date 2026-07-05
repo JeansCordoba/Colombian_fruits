@@ -2,6 +2,39 @@
 
 El proyecto usa **TypeORM migrations** con `DATABASE_SYNCHRONIZE=false` en todos los entornos.
 
+## Flujo de migraciones
+
+```mermaid
+flowchart TD
+    subgraph dev ["Development"]
+        D1["docker compose up -d postgres"]
+        D2["pnpm migration:run"]
+        D3["pnpm start:dev"]
+        D1 --> D2 --> D3
+    end
+
+    subgraph docker ["Docker / production startup"]
+        B1["node run-migrations.js"]
+        B2["node main.js"]
+        B1 --> B2
+    end
+
+    subgraph revert ["Revert last migration"]
+        R1["pnpm migration:revert"]
+        R2["Last migration undone"]
+        R1 --> R2
+    end
+
+    subgraph reset ["Full reset (optional)"]
+        X1["docker compose down -v"]
+        X2["docker compose up -d postgres"]
+        X3["pnpm migration:run"]
+        X1 --> X2 --> X3
+    end
+```
+
+[Ver fuente en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/08-migration-flow.md)
+
 ## Scripts disponibles
 
 | Comando | Descripción |

@@ -29,20 +29,20 @@ flowchart TD
 
 ## Páginas
 
-1. [[Study/01-Paradigmas]] — OOP, async/await, TypeScript tipado
-2. [[Study/02-Arquitectura-Software]] — Clean Architecture y regla de dependencias
-3. [[Study/03-Patrones-Creacionales]] — Inyección de dependencias con tokens
-4. [[Study/04-Patrones-Estructurales]] — Repository, Mapper, DTO, Read Model
-5. [[Study/05-Patrones-Comportamiento]] — Use Case, Command, Validator
-6. [[Study/06-Patrones-Arquitectonicos]] — Layer-first, soft delete, transacciones N:M
-7. [[Study/07-NestJS-En-Este-Proyecto]] — Módulos, pipes y filters en la práctica
-8. [[Study/08-Glosario-Rapido]] — Términos → archivos concretos
+1. [[Study-01-Paradigmas]] — OOP, async/await, TypeScript tipado
+2. [[Study-02-Arquitectura-Software]] — Clean Architecture y regla de dependencias
+3. [[Study-03-Patrones-Creacionales]] — Inyección de dependencias con tokens
+4. [[Study-04-Patrones-Estructurales]] — Repository, Mapper, DTO, Read Model
+5. [[Study-05-Patrones-Comportamiento]] — Use Case, Command, Validator
+6. [[Study-06-Patrones-Arquitectonicos]] — Layer-first, soft delete, transacciones N:M
+7. [[Study-07-NestJS-En-Este-Proyecto]] — Módulos, pipes y filters en la práctica
+8. [[Study-08-Glosario-Rapido]] — Términos → archivos concretos
 
 ## Cómo usar esta sección con el código
 
 1. Lee una página de Study.
 2. Abre el archivo que cita (ruta bajo `src/`).
-3. Sigue un flujo completo: `fruits.controller.ts` → `create-fruit.use-case.ts` → `fruit.repository.ts`.
+3. Sigue un flujo completo: [[Create-Fruit-Flow]] o `fruits.controller.ts` → `create-fruit.use-case.ts` → `fruit.repository.ts`.
 4. Prueba el endpoint en Swagger: http://localhost:3000/api/docs
 
 ## Documentación avanzada (inglés, en el repo)

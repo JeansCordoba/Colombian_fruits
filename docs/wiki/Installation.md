@@ -8,6 +8,22 @@ Guía para levantar el proyecto en desarrollo local.
 - pnpm 11+
 - Docker Desktop (PostgreSQL)
 
+## Flujo de instalación
+
+```mermaid
+flowchart TD
+    A["git clone"] --> B["pnpm install"]
+    B --> C["cp .env.example .env"]
+    C --> D["docker compose up -d postgres"]
+    D --> E{"Postgres healthy?"}
+    E -->|No| D
+    E -->|Yes| F["pnpm migration:run"]
+    F --> G["pnpm start:dev"]
+    G --> H["curl /health → ok"]
+```
+
+[Ver fuente en repo](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/07-installation-flow.md)
+
 ## Pasos
 
 ### 1. Clonar e instalar
