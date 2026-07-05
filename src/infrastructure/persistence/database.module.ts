@@ -23,8 +23,8 @@ export class DatabaseModule {
               username: databaseConfig.user,
               password: databaseConfig.password,
               database: databaseConfig.name,
-              autoLoadEntities: true,
-              synchronize: databaseConfig.synchronize,
+              autoLoadEntities: false,
+              synchronize: false,
             };
           },
         }),
