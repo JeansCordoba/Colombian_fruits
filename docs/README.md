@@ -1,78 +1,60 @@
-# Colombian Fruits API — Documentación
+# Colombian Fruits API — Documentation
 
-Documentación del backend **NestJS + PostgreSQL** implementado como caso de estudio de **Clean Architecture** con estructura **layer-first**.
+Technical documentation for the NestJS + PostgreSQL backend (Clean Architecture, layer-first).
 
-**Estado:** MVP completo en `main` — CRUD de catálogos, families, fruits (N:M), health check, migraciones TypeORM, tests unitarios y e2e.
+**Status:** MVP complete on `main` — full CRUD for catalogs, families, fruits (N:M), migrations, unit + e2e tests.
 
-## Orden de lectura recomendado
+## Reading order
 
-1. [Bounded Contexts](./architecture/01-bounded-contexts.md) — módulos del dominio y sus relaciones
-2. [Capas Clean Architecture](./architecture/02-clean-architecture-layers.md) — reglas de dependencia
-3. [Estructura layer-first](./architecture/03-layer-first-structure.md) — plantilla de carpetas por capa
-4. [Diagramas Mermaid](./architecture/diagrams/) — contexto, capas, ERD, módulos NestJS, Docker, ramas Git
-5. [Secuencia CreateFruit](./architecture/04-sequence-create-fruit.md) — flujo completo del caso de uso principal
-6. [Patrones de diseño](./architecture/05-design-patterns.md) — matriz de patrones con ejemplos del dominio
-7. [Excepciones de dominio](./architecture/06-domain-exceptions.md) — convenciones y mapeo HTTP
-8. [ERD / schema.dbml](./database/schema.dbml) — modelo de datos versionado
-9. [Glosario botánico](./database/glossary.md) — términos del dominio
-10. [Contrato API](./api/endpoints.md) — endpoints con envelope HTTP
-11. [Estado de implementación](./guides/02-implementation-status.md) — qué código existe en `src/`
-12. [Wiki operativa](./wiki/Home.md) — guías de instalación, migraciones, testing
-13. [Wiki de estudio](./wiki/Study/Home.md) — aprendizaje para desarrolladores junior
+1. [Bounded contexts](./architecture/01-bounded-contexts.md)
+2. [Clean Architecture layers](./architecture/02-clean-architecture-layers.md)
+3. [Layer-first folder structure](./architecture/03-layer-first-structure.md)
+4. [Diagrams](./architecture/diagrams/) — system context, layers, ERD, NestJS modules, Docker, Git branches
+5. [CreateFruit sequence](./architecture/04-sequence-create-fruit.md)
+6. [Design patterns](./architecture/05-design-patterns.md)
+7. [Domain exceptions](./architecture/06-domain-exceptions.md)
+8. [Database schema (DBML)](./database/schema.dbml)
+9. [API contract](./api/endpoints.md)
+10. [Implementation status](./guides/02-implementation-status.md)
 
-## Architecture Decision Records (ADRs)
+## Operations & learning (wiki)
 
-| ADR | Decisión |
+Operational guides and the junior learning path live in the wiki (published from `docs/wiki/`):
+
+| Resource | Link |
+|----------|------|
+| Wiki home | [GitHub Wiki](https://github.com/JeansCordoba/Colombian_fruits/wiki) · [repo source](./wiki/Home.md) |
+| Installation | [Installation](./wiki/Installation.md) |
+| Study (Spanish) | [Study/Home](./wiki/Study/Home.md) |
+
+## Architecture Decision Records
+
+| ADR | Decision |
 |-----|----------|
-| [001](./architecture/adr/001-nestjs-over-fastapi.md) | NestJS sobre FastAPI |
-| [002](./architecture/adr/002-postgresql-neon.md) | PostgreSQL con Neon en producción |
-| [003](./architecture/adr/003-typeorm-vs-prisma.md) | TypeORM sobre Prisma |
-| [004](./architecture/adr/004-layer-first-structure.md) | Estructura layer-first + capa `interfaces/` |
+| [001](./architecture/adr/001-nestjs-over-fastapi.md) | NestJS over FastAPI |
+| [002](./architecture/adr/002-postgresql-neon.md) | PostgreSQL with Neon in production |
+| [003](./architecture/adr/003-typeorm-vs-prisma.md) | TypeORM over Prisma |
+| [004](./architecture/adr/004-layer-first-structure.md) | Layer-first + `interfaces/` layer |
 
-## Estructura de esta carpeta
+## Folder layout
 
 ```
 docs/
-├── README.md                          # Este índice
-├── database/
-│   ├── schema.dbml                    # ERD versionado (dbdiagram.io)
-│   └── glossary.md
-├── architecture/
-│   ├── 01-bounded-contexts.md
-│   ├── 02-clean-architecture-layers.md
-│   ├── 03-layer-first-structure.md
-│   ├── 04-sequence-create-fruit.md
-│   ├── 05-design-patterns.md
-│   ├── 06-domain-exceptions.md
-│   ├── diagrams/                      # 6 diagramas Mermaid
-│   └── adr/
-├── api/
-│   └── endpoints.md
-├── guides/
-│   ├── 00-project-kickoff-checklist.md
-│   ├── 01-vertical-slice-fruits.md
-│   └── 02-implementation-status.md
-└── wiki/                              # Fuente de verdad para GitHub Wiki
-    ├── Home.md
-    ├── Installation.md
-    ├── Study/                         # Sección de aprendizaje
-    └── ...
+├── README.md                 # This index
+├── api/endpoints.md          # HTTP contract
+├── architecture/             # Design docs, diagrams, ADRs
+├── database/                 # schema.dbml, glossary
+├── guides/                   # Kickoff, vertical slice, status
+└── wiki/                     # Source for GitHub Wiki
 ```
 
-## Wiki y diagramas
+## MVP checklist
 
-- **Wiki en repo:** [`wiki/Home.md`](./wiki/Home.md) — guías operativas y sección Study para juniors
-- **GitHub Wiki:** https://github.com/JeansCordoba/Colombian_fruits/wiki (copia publicada desde `docs/wiki/`)
-- **Diagramas:** [`architecture/diagrams/`](./architecture/diagrams/) — renderizables en GitHub
-
-## Criterio "MVP completo en main"
-
-- [x] CRUD completo: 6 catálogos + families + fruits
-- [x] Relaciones N:M en fruits (climates, departments, natural-regions, harvest-seasons)
-- [x] Contrato HTTP con envelope `{ success, data, statusCode }`
-- [x] Soft delete en catálogos y agregados
-- [x] Migraciones TypeORM (`DATABASE_SYNCHRONIZE=false`)
-- [x] Tests unitarios + e2e
-- [x] Swagger + health check
-- [ ] Seed de datos — pendiente (usuario, rama `develop`)
-- [ ] Despliegue Neon + hosting — pendiente (rama `develop`)
+- [x] CRUD: 6 catalogs + families + fruits
+- [x] N:M relations on fruits
+- [x] HTTP envelope `{ success, data, statusCode }`
+- [x] Soft delete
+- [x] TypeORM migrations (`DATABASE_SYNCHRONIZE=false`)
+- [x] Unit + e2e tests, Swagger, health check
+- [ ] Seed script — planned on `develop` (user-owned)
+- [ ] Production deployment — planned on `develop`

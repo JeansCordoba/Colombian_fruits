@@ -43,4 +43,4 @@ async validate(relations: FruitRelations): Promise<void> {
 
 ## Siguiente paso
 
-- [06-Patrones-Arquitectonicos](06-Patrones-Arquitectonicos)
+- [06-Patrones-Arquitectonicos](Study-06-Patrones-Arquitectonicos)

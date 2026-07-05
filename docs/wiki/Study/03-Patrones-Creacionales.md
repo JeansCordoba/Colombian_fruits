@@ -39,4 +39,4 @@ constructor(
 
 ## Siguiente paso
 
-- [04-Patrones-Estructurales](04-Patrones-Estructurales)
+- [04-Patrones-Estructurales](Study-04-Patrones-Estructurales)

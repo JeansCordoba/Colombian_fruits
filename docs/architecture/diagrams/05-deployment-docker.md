@@ -1,51 +1,70 @@
-# Diagrama — Despliegue Docker
+# Diagram: Docker Deployment
 
-Stack local con docker-compose: PostgreSQL + API con migraciones al arranque.
+**Type:** Architecture / deployment  
+**Tool:** Mermaid  
+**Purpose:** Local stack with PostgreSQL and API container running migrations on startup.
+
+---
+
+## Diagram Code
 
 ```mermaid
 flowchart TB
-    subgraph compose ["docker-compose.yml"]
-        subgraph pg ["postgres service"]
-            PG[(PostgreSQL 16<br/>volume: postgres_data)]
+    subgraph Host ["Developer machine"]
+        Port3000["Host :3000"]
+        Port5432["Host :5432"]
+    end
+
+    subgraph Compose ["docker-compose.yml"]
+        subgraph PGService ["postgres"]
+            PG[(PostgreSQL 16<br/>volume postgres_data)]
+            HC["healthcheck pg_isready"]
         end
-        subgraph api ["api service"]
-            Build["Dockerfile<br/>multi-stage build"]
-            Mig["run-migrations.js"]
-            Main["main.js"]
-            Build --> Mig --> Main
+
+        subgraph APIService ["api"]
+            IMG["Dockerfile multi-stage"]
+            MIG["run-migrations.js"]
+            APP["main.js"]
+            IMG --> MIG --> APP
         end
     end
 
-    Host["Host :3000"] --> Main
-    Main -->|"DATABASE_HOST=postgres"| PG
-    Mig -->|"migration:run"| PG
+    Port3000 --> APP
+    Port5432 --> PG
+    APP -->|"DATABASE_HOST=postgres"| PG
+    MIG -->|"TypeORM migrations"| PG
+    APIService -->|"depends_on: service_healthy"| PGService
 ```
 
-## Flujo de arranque (API en Docker)
+---
 
-1. `docker compose up --build` construye imagen multi-stage.
-2. Al iniciar el contenedor: `node dist/infrastructure/persistence/run-migrations.js`.
-3. Si migraciones OK: `node dist/main.js`.
-4. PostgreSQL debe estar healthy (`depends_on: condition: service_healthy`).
+## Startup sequence (API container)
 
-## Variables clave en contenedor
+1. `docker compose up --build` builds the multi-stage image (`node:22-alpine`).
+2. Container CMD: `node dist/infrastructure/persistence/run-migrations.js`.
+3. On success: `node dist/main.js` listens on port 3000.
+4. PostgreSQL must pass `pg_isready` before the API starts.
 
-| Variable | Valor en Docker |
+## Key environment overrides (api service)
+
+| Variable | Value in Docker |
 |----------|-----------------|
 | `DATABASE_HOST` | `postgres` |
 | `DATABASE_SYNCHRONIZE` | `false` |
 | `NODE_ENV` | `production` |
 
-## Desarrollo local (API en host)
+## Local dev (API on host)
 
 ```bash
-docker compose up -d postgres   # solo BD
-pnpm migration:run              # migraciones desde host
-pnpm start:dev                  # API con ts-node
+docker compose up -d postgres
+pnpm migration:run
+pnpm start:dev
 ```
 
-## Referencias
+Use `DATABASE_HOST=localhost` in `.env` when the API runs on the host.
+
+## References
 
 - [`Dockerfile`](../../../Dockerfile)
 - [`docker-compose.yml`](../../../docker-compose.yml)
-- [Database Migrations](../../wiki/Database-Migrations.md)
+- [Database migrations](../../wiki/Database-Migrations.md)

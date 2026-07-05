@@ -1,36 +1,48 @@
-# Diagrama — Estrategia de ramas Git
+# Diagram: Git Branching Strategy
 
-Política de ramas para el proyecto.
+**Type:** Git graph  
+**Tool:** Mermaid  
+**Purpose:** Branch policy for MVP on `main` and future work on `develop`.
+
+---
+
+## Diagram Code
 
 ```mermaid
 gitGraph
-    commit id: "MVP estable"
+    commit id: "MVP on main"
     branch develop
     checkout develop
-    commit id: "Neon deploy (futuro)"
-    commit id: "Seed datos (futuro)"
+    commit id: "seed script"
+    commit id: "Neon deploy"
     checkout main
-    merge develop tag: "release"
+    merge develop id: "release PR" tag: "v0.x"
+    commit id: "hotfix if needed"
 ```
 
-## Ramas
+---
 
-| Rama | Propósito | Despliegue |
-|------|-----------|------------|
-| `main` | MVP estable, listo para frontend | Referencia de producción |
-| `develop` | Features futuras, seed, despliegue | Integración continua |
-| `feature/*` | Trabajo aislado | PR hacia `develop` |
+## Branches
 
-## Flujo de trabajo
+| Branch | Purpose | CI triggers |
+|--------|---------|-------------|
+| `main` | Stable MVP — ready for frontend consumption | push / PR |
+| `develop` | Integration: seed, deploy, advanced filters | push / PR |
+| `feature/*` | Isolated work → PR to `develop` | via PR |
 
-1. Crear rama desde `develop` para cada feature.
-2. Abrir PR hacia `develop`; CI debe pasar.
-3. Cuando un conjunto de features esté listo, PR de `develop` → `main`.
+## Workflow
 
-## Próximo trabajo en `develop`
+1. Branch from `develop` for each feature.
+2. Open PR to `develop`; CI must pass (`typecheck`, `test:ci`, `build`, Docker image).
+3. When a release set is ready, PR `develop` → `main`.
 
-- Despliegue Neon (PostgreSQL) + hosting API
-- Seed de datos colombianos (usuario)
-- Filtros avanzados en fruits
+## Planned on `develop`
 
-Ver [Development Workflow](../../wiki/Development-Workflow.md) y [Roadmap](../../wiki/Roadmap.md).
+- Neon PostgreSQL + API hosting
+- Colombian data seed script (user-owned)
+- Advanced fruit filters (`?climate=`, `?department=`)
+
+## References
+
+- [Development workflow](../../wiki/Development-Workflow.md)
+- [Roadmap](../../wiki/Roadmap.md)

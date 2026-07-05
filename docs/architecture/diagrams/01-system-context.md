@@ -1,10 +1,16 @@
-# Diagrama — Contexto del sistema
+# Diagram: System Context
 
-Vista de alto nivel: quién interactúa con qué.
+**Type:** Architecture diagram  
+**Tool:** Mermaid (`flowchart LR`)  
+**Purpose:** Show who interacts with the API, PostgreSQL, Swagger, and health check.
+
+---
+
+## Diagram
 
 ```mermaid
 flowchart LR
-    Client["Cliente HTTP<br/>(Frontend / Postman)"]
+    Client["HTTP Client<br/>(Frontend / Postman)"]
     API["Colombian Fruits API<br/>NestJS"]
     DB[(PostgreSQL 16)]
     Swagger["Swagger UI<br/>/api/docs"]
@@ -14,17 +20,19 @@ flowchart LR
     Client --> Swagger
     Client --> Health
     API --> DB
-    Swagger -.->|"Documenta"| API
-    Health -.->|"Ping SELECT 1"| DB
+    Swagger -.->|"Documents"| API
+    Health -.->|"SELECT 1"| DB
 ```
 
-## Notas
+---
 
-- El prefijo global es `api/v1`; `/health` y `/api/docs` quedan **fuera** del prefijo.
-- Swagger documenta el contrato con envelope `{ success, data, statusCode }`.
-- En Docker, PostgreSQL corre como servicio `postgres`; la API espera `DATABASE_HOST=postgres`.
+## Notes
 
-## Referencias
+- Global API prefix is `api/v1`; `/health` and `/api/docs` sit **outside** that prefix.
+- Success responses use envelope `{ success, data, statusCode }`.
+- In Docker Compose, the API uses `DATABASE_HOST=postgres`.
 
-- [Endpoints](../../api/endpoints.md)
-- [Deployment Docker](./05-deployment-docker.md)
+## References
+
+- [API endpoints](../../api/endpoints.md)
+- [Docker deployment](./05-deployment-docker.md)

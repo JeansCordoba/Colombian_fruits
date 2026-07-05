@@ -38,5 +38,5 @@ export class CreateFruitRequestDto {
 
 ## Siguiente paso
 
-- [05-Patrones-Comportamiento](05-Patrones-Comportamiento)
-- [Patrones de diseño](../../architecture/05-design-patterns.md)
+- [05-Patrones-Comportamiento](Study-05-Patrones-Comportamiento)
+- [Patrones de diseño](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/05-design-patterns.md)

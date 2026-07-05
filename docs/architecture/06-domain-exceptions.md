@@ -14,169 +14,130 @@ domain/climates/exceptions/climate.exceptions.ts
 
 | ✅ Hacer | ❌ Evitar |
 |---------|----------|
-| Un archivo `{context}.exceptions.ts` por contexto | Mezclar excepciones de `fruits` y `families` en el mismo archivo |
-| Varias clases en el mismo archivo si son del mismo contexto | `HttpException` o `NotFoundException` de NestJS en `domain/` |
-| `extends Error` + `this.name` explícito | Lanzar strings o errores genéricos sin tipo |
+| Un archivo `{context}.exceptions.ts` por contexto | Mezclar excepciones de distintos contextos |
+| Extender `DomainException` con `kind` explícito | `HttpException` o `NotFoundException` de NestJS en `domain/` |
+| Mensajes de negocio claros en `super(...)` | Lanzar strings sin clase tipada |
 
-Las excepciones de dominio **no conocen HTTP**. La traducción a 404/409/422 ocurre en `interfaces/` (exception filter).
+Las excepciones de dominio **no conocen HTTP**. La traducción a códigos HTTP ocurre en `interfaces/http/shared/filters/domain-exception.filter.ts`.
 
 ---
 
-## Plantilla de excepción
+## Clase base — `DomainException`
 
 ```typescript
-export class FruitNotFoundException extends Error {
-  constructor(readonly fruitId: number) {
-    super(`Fruit with id ${fruitId} not found.`);
-    this.name = 'FruitNotFoundException';
-  }
+// src/domain/shared/exceptions/domain-exception.base.ts
+export enum DomainExceptionKind {
+    NOT_FOUND = 'NOT_FOUND',
+    CONFLICT = 'CONFLICT',
+    INVALID_DATA = 'INVALID_DATA',
+}
+
+export abstract class DomainException extends Error {
+    abstract readonly kind: DomainExceptionKind;
+}
+```
+
+---
+
+## Plantilla por contexto
+
+```typescript
+// src/domain/fruits/exceptions/fruit.exceptions.ts
+export class FruitNotFoundException extends DomainException {
+    readonly kind = DomainExceptionKind.NOT_FOUND;
+
+    constructor(readonly fruitId: number) {
+        super(`Fruit with id ${fruitId} not found.`);
+        this.name = 'FruitNotFoundException';
+    }
 }
 ```
 
 Elementos obligatorios:
 
-1. `extends Error`
-2. Datos útiles en propiedades (`fruitId`, `scientificName`, etc.)
-3. `super('mensaje de negocio claro')`
+1. `extends DomainException`
+2. `readonly kind` con el valor del enum
+3. Datos útiles en propiedades (`fruitId`, `scientificName`, etc.)
 4. `this.name = 'NombreDeLaClase'`
 
 ---
 
-## Estado actual — `domain/fruits/exceptions/fruit.exceptions.ts`
+## Excepciones implementadas
 
-Implementado en el repositorio:
+### `fruits`
 
-| Excepción | Cuándo se lanza | HTTP (en filter) |
-|-----------|-----------------|------------------|
-| `FruitNotFoundException` | `GetFruitByIdUseCase`: `findById` retorna `null` | **404** |
-| `FruitScientificNameNotFoundException` | Use case que busca por `scientificName` y no existe | **404** |
-| `DuplicateFruitScientificNameException` | `CreateFruitUseCase` o repositorio: `scientific_name` duplicado | **409** |
-| `InvalidFruitDataException` | Regla de dominio incumplida (nombres vacíos, etc.) | **422** |
+| Excepción | Cuándo se lanza | HTTP |
+|-----------|-----------------|------|
+| `FruitNotFoundException` | `GetFruitByIdUseCase`: `findByIdWithRelations` retorna `null` | **404** |
+| `DuplicateFruitScientificNameException` | `CreateFruitUseCase`: nombre científico duplicado | **409** |
+| `InvalidFruitDataException` | Regla de dominio incumplida | **422** |
 
-### Ejemplo del archivo actual
+### Catálogos (todos los contextos)
 
-```typescript
-export class FruitNotFoundException extends Error {
-  constructor(readonly fruitId: number) {
-    super(`Fruit with id ${fruitId} not found.`);
-    this.name = 'FruitNotFoundException';
-  }
-}
+Cada catálogo expone al menos `*NotFoundException` con `kind = NOT_FOUND`:
 
-export class FruitScientificNameNotFoundException extends Error {
-  constructor(readonly scientificName: string) {
-    super(`Fruit with scientific name ${scientificName} not found.`);
-    this.name = 'FruitScientificNameNotFoundException';
-  }
-}
+| Contexto | Archivo | Ejemplo |
+|----------|---------|---------|
+| families | `family.exceptions.ts` | `FamilyNotFoundException` |
+| type-fruits | `type-fruit.exceptions.ts` | `TypeFruitNotFoundException` |
+| climates | `climate.exceptions.ts` | `ClimateNotFoundException` |
+| departments | `department.exceptions.ts` | `DepartmentNotFoundException` |
+| natural-regions | `natural-region.exceptions.ts` | `NaturalRegionNotFoundException` |
+| harvest-seasons | `harvest-season.exceptions.ts` | `HarvestSeasonNotFoundException` |
+| type-plants | `type-plant.exceptions.ts` | `TypePlantNotFoundException` |
 
-export class DuplicateFruitScientificNameException extends Error {
-  constructor(readonly scientificName: string) {
-    super(`Fruit with scientific name ${scientificName} already exists.`);
-    this.name = 'DuplicateFruitScientificNameException';
-  }
-}
-
-export class InvalidFruitDataException extends Error {
-  constructor(reason: string) {
-    super(`Invalid fruit data: ${reason}.`);
-    this.name = 'InvalidFruitDataException';
-  }
-}
-```
+`CreateFruitUseCase` lanza `FamilyNotFoundException` y `TypeFruitNotFoundException` cuando las FK no existen. `FruitRelationsValidator` lanza las excepciones de los catálogos N:M.
 
 ---
 
-## Quién lanza qué — por capa
+## Flujo de mapeo HTTP
 
 ```mermaid
-flowchart TB
-    VP[ValidationPipe<br/>interfaces] -->|400| HTTP
-    UC[Use cases<br/>application] -->|lanzan| DE[domain exceptions]
-    REPO[PostgresFruitRepository<br/>infrastructure] -->|traduce unique| DE
-    DE --> FILTER[DomainExceptionFilter<br/>interfaces] -->|404/409/422| HTTP
+flowchart LR
+    VP["ValidationPipe<br/>interfaces"] -->|400| HTTP
+    UC["Use cases<br/>application"] -->|throw| DE["DomainException"]
+    REPO["Repositories<br/>infrastructure"] -->|translate DB errors| DE
+    DE --> FILTER["DomainExceptionFilter<br/>@Catch DomainException"] --> HTTP
 ```
 
-| Capa | Responsabilidad |
-|------|-----------------|
-| **`interfaces/`** | DTO inválido → **400** (ValidationPipe). Filtro global → traduce excepciones de dominio a HTTP |
-| **`application/`** | Detecta reglas de negocio incumplidas y **lanza** excepciones de dominio |
-| **`domain/`** | **Define** las clases de excepción |
-| **`infrastructure/`** | Captura errores de BD (ej. unique constraint) y lanza excepción de dominio equivalente |
+| `DomainExceptionKind` | HTTP status |
+|-----------------------|-------------|
+| `NOT_FOUND` | 404 |
+| `CONFLICT` | 409 |
+| `INVALID_DATA` | 422 |
 
 ---
 
-## `GetFruitByIdUseCase`
-
-| Condición | Quién lanza | Excepción |
-|-----------|-------------|-----------|
-| `id` no es entero | `ParseIntPipe` en controller | — → **400** |
-| `findById` retorna `null` | `GetFruitByIdUseCase` | `FruitNotFoundException` |
+## Exception filter (implementación actual)
 
 ```typescript
-const fruit = await this.fruitRepository.findById(id);
-if (!fruit) {
-  throw new FruitNotFoundException(id);
-}
-return fruit;
-```
-
----
-
-## `CreateFruitUseCase`
-
-| Condición | Quién lanza | Excepción |
-|-----------|-------------|-----------|
-| DTO mal formado | `ValidationPipe` | — → **400** |
-| Nombres vacíos / regla de dominio | `CreateFruitUseCase` | `InvalidFruitDataException` |
-| `familyId` no existe | `CreateFruitUseCase` | `FamilyNotFoundException` *(families)* |
-| `typeFruitId` no existe | `CreateFruitUseCase` | `TypeFruitNotFoundException` *(type-fruits)* |
-| `climateId` / `departmentId` / etc. no existe | `CreateFruitUseCase` | excepción del catálogo correspondiente |
-| `scientific_name` duplicado | `PostgresFruitRepository` *(recomendado)* o use case | `DuplicateFruitScientificNameException` |
-
----
-
-## Exception filter (capa `interfaces/`)
-
-```typescript
-@Catch(
-  FruitNotFoundException,
-  FruitScientificNameNotFoundException,
-  DuplicateFruitScientificNameException,
-  InvalidFruitDataException,
-)
+// src/interfaces/http/shared/filters/domain-exception.filter.ts
+@Catch(DomainException)
 export class DomainExceptionFilter implements ExceptionFilter {
-  catch(exception: Error, host: ArgumentsHost): void {
-    const response = host.switchToHttp().getResponse<Response>();
-    const status = this.resolveStatus(exception);
-    response.status(status).json({
-      statusCode: status,
-      message: exception.message,
-      error: this.resolveErrorLabel(status),
-    });
-  }
+    catch(exception: DomainException, host: ArgumentsHost): void {
+        const status = this.resolveStatus(exception.kind);
+        response.status(status).json(buildApiErrorResponse(status, exception.message));
+    }
 }
 ```
 
-Registrar en `main.ts`:
+Registrado en `main.ts` junto con `UnhandledExceptionFilter`:
 
 ```typescript
-app.useGlobalFilters(new DomainExceptionFilter());
+app.useGlobalFilters(new UnhandledExceptionFilter(), new DomainExceptionFilter());
 ```
 
 ---
 
-## Excepciones de otros contextos (pendientes)
+## Quién lanza qué — `CreateFruitUseCase`
 
-Al implementar validación de FKs en `CreateFruitUseCase`, crear archivos equivalentes:
-
-```
-domain/families/exceptions/family.exceptions.ts       → FamilyNotFoundException
-domain/type-fruits/exceptions/type-fruit.exceptions.ts → TypeFruitNotFoundException
-domain/climates/exceptions/climate.exceptions.ts       → ClimateNotFoundException
-```
-
-Mismo patrón: un archivo por contexto, varias clases si hace falta.
+| Condición | Capa | Excepción |
+|-----------|------|-----------|
+| DTO inválido | `interfaces/` (ValidationPipe) | — → **400** |
+| `familyId` no existe | `application/` | `FamilyNotFoundException` |
+| `typeFruitId` no existe | `application/` | `TypeFruitNotFoundException` |
+| ID N:M inexistente | `application/` (`FruitRelationsValidator`) | excepción del catálogo correspondiente |
+| `scientificName` duplicado | `application/` | `DuplicateFruitScientificNameException` |
 
 ---
 
@@ -185,14 +146,13 @@ Mismo patrón: un archivo por contexto, varias clases si hace falta.
 | ❌ Mal | ✅ Bien |
 |-------|--------|
 | `throw new NotFoundException()` en controller | `throw new FruitNotFoundException(id)` en use case |
-| Excepción de dominio que extiende `HttpException` | `extends Error` en `domain/` |
-| Mensaje de error hardcodeado sin clase tipada | Clase con `name` explícito para el filter |
-| Una carpeta con un `.ts` por excepción (obligatorio) | Un `{context}.exceptions.ts` por bounded context |
+| Excepción que extiende `HttpException` en `domain/` | `extends DomainException` |
+| Listar cada excepción en `@Catch(...)` | `@Catch(DomainException)` — una sola clase base |
+| Un `.ts` por excepción (obligatorio) | Un `{context}.exceptions.ts` por bounded context |
 
 ---
 
 ## Referencias
 
 - Secuencia CreateFruit: [`04-sequence-create-fruit.md`](./04-sequence-create-fruit.md)
-- Guía vertical slice: [`../guides/01-vertical-slice-fruits.md`](../guides/01-vertical-slice-fruits.md)
-- Código actual: [`../../src/domain/fruits/exceptions/fruit.exceptions.ts`](../../src/domain/fruits/exceptions/fruit.exceptions.ts)
+- Código: [`../../src/domain/shared/exceptions/domain-exception.base.ts`](../../src/domain/shared/exceptions/domain-exception.base.ts)

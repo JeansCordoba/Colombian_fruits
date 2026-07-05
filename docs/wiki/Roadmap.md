@@ -27,4 +27,4 @@ No incluido en el MVP. Tras migrar, poblar vía API. El usuario implementará un
 
 ## Despliegue
 
-Ver ADR 002 (`docs/architecture/adr/002-postgresql-neon.md`). Será el primer trabajo significativo en `develop` después del release de `main`.
+Ver [ADR 002](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/adr/002-postgresql-neon.md). Será el primer trabajo significativo en `develop` después del release de `main`.

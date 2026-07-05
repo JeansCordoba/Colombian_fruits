@@ -1,6 +1,12 @@
-# Diagrama — Módulos NestJS
+# Diagram: NestJS Modules
 
-Composición de módulos HTTP y dependencias entre ellos.
+**Type:** Component / module diagram  
+**Tool:** Mermaid (`flowchart TB`)  
+**Purpose:** Show `AppModule` composition and cross-module dependencies (e.g. `FruitsModule` → `FamiliesModule`).
+
+---
+
+## Diagram
 
 ```mermaid
 flowchart TB
@@ -8,7 +14,7 @@ flowchart TB
     ConfigModule["ConfigModule"]
     DatabaseModule["DatabaseModule"]
     HealthModule["HealthModule"]
-    CatalogModules["Catálogos<br/>(departments, climates, ...)"]
+    CatalogModules["Catalog modules<br/>(departments, climates, ...)"]
     FamiliesModule["FamiliesModule"]
     FruitsModule["FruitsModule"]
 
@@ -18,25 +24,26 @@ flowchart TB
     AppModule --> CatalogModules
     AppModule --> FamiliesModule
     AppModule --> FruitsModule
-    FruitsModule -->|"imports"| FamiliesModule
-    FruitsModule -->|"uses FAMILY_REPOSITORY"| FamiliesModule
+    FruitsModule -->|"imports + FAMILY_REPOSITORY"| FamiliesModule
 ```
 
-## Módulos registrados en AppModule
+---
 
-| Módulo | Ruta base | Notas |
+## Registered modules
+
+| Module | Base path | Notes |
 |--------|-----------|-------|
-| `HealthModule` | `/health` | Fuera de `api/v1` |
-| `DepartmentsModule` | `/api/v1/departments` | Incluye campo `code` |
+| `HealthModule` | `/health` | Outside `api/v1` |
+| `DepartmentsModule` | `/api/v1/departments` | Includes `code` field |
 | `TypePlantsModule` | `/api/v1/type-plants` | |
 | `TypeFruitsModule` | `/api/v1/type-fruits` | |
 | `ClimatesModule` | `/api/v1/climates` | |
 | `NaturalRegionsModule` | `/api/v1/natural-regions` | |
 | `HarvestSeasonsModule` | `/api/v1/harvest-seasons` | |
-| `FamiliesModule` | `/api/v1/families` | Exporta `FAMILY_REPOSITORY` |
-| `FruitsModule` | `/api/v1/fruits` | Importa `FamiliesModule` |
+| `FamiliesModule` | `/api/v1/families` | Exports `FAMILY_REPOSITORY` |
+| `FruitsModule` | `/api/v1/fruits` | Imports `FamiliesModule` |
 
-## Referencias
+## References
 
 - [`src/interfaces/app.module.ts`](../../../src/interfaces/app.module.ts)
-- [NestJS en este proyecto](../../wiki/Study/07-NestJS-En-Este-Proyecto.md)
+- [NestJS in this project (Study, Spanish)](../../wiki/Study/07-NestJS-En-Este-Proyecto.md)

@@ -19,5 +19,5 @@ Términos clave del proyecto con enlace al código.
 
 ## Siguiente paso
 
-- Volver a [Study/Home](Home)
-- [Wiki Home](../Home)
+- Volver a [Study/Home](Study-Home)
+- [Wiki Home](Home)

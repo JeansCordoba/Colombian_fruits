@@ -66,7 +66,7 @@ Documentación interactiva en `/api/docs`. Incluye ejemplos de request/response 
 
 ## Contrato completo
 
-Ver [endpoints.md](../api/endpoints.md) en el repo.
+Ver [endpoints.md](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/api/endpoints.md) en el repositorio.
 
 ## Siguiente paso
 

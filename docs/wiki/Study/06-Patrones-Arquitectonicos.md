@@ -36,5 +36,5 @@ throw new FamilyNotFoundException(familyId);
 
 ## Siguiente paso
 
-- [07-NestJS-En-Este-Proyecto](07-NestJS-En-Este-Proyecto)
-- [ADR layer-first](../../architecture/adr/004-layer-first-structure.md)
+- [07-NestJS-En-Este-Proyecto](Study-07-NestJS-En-Este-Proyecto)
+- [ADR layer-first](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/adr/004-layer-first-structure.md)

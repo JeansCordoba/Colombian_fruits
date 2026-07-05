@@ -1,6 +1,6 @@
 # Arquitectura
 
-Resumen de la arquitectura del proyecto. Para profundizar, consulta `docs/architecture/` en el repo.
+Resumen de la arquitectura del proyecto. Para el detalle completo, consulta la documentación en el repositorio.
 
 ## Clean Architecture + layer-first
 
@@ -15,16 +15,18 @@ interfaces → application → domain ← infrastructure
 | Infrastructure | `src/infrastructure/` | TypeORM, config, migraciones |
 | Interfaces | `src/interfaces/` | Controllers, DTOs, módulos HTTP |
 
-## Diagramas
+## Diagramas (en el repo)
+
+Los diagramas Mermaid se mantienen en `docs/architecture/diagrams/` para renderizarse en GitHub:
 
 | Diagrama | Tema |
 |----------|------|
-| [01-system-context](../architecture/diagrams/01-system-context.md) | Cliente → API → PostgreSQL |
-| [02-clean-architecture-layers](../architecture/diagrams/02-clean-architecture-layers.md) | Capas y dependencias |
-| [03-entity-relationship](../architecture/diagrams/03-entity-relationship.md) | ERD |
-| [04-nestjs-modules](../architecture/diagrams/04-nestjs-modules.md) | Módulos NestJS |
-| [05-deployment-docker](../architecture/diagrams/05-deployment-docker.md) | Docker Compose |
-| [06-git-branching](../architecture/diagrams/06-git-branching.md) | Ramas Git |
+| [01-system-context](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/01-system-context.md) | Cliente → API → PostgreSQL |
+| [02-clean-architecture-layers](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/02-clean-architecture-layers.md) | Capas y dependencias |
+| [03-entity-relationship](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/03-entity-relationship.md) | ERD |
+| [04-nestjs-modules](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/04-nestjs-modules.md) | Módulos NestJS |
+| [05-deployment-docker](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/05-deployment-docker.md) | Docker Compose |
+| [06-git-branching](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/06-git-branching.md) | Ramas Git |
 
 ## Bounded contexts
 
@@ -34,8 +36,8 @@ interfaces → application → domain ← infrastructure
 
 ## ADRs
 
-Decisiones arquitectónicas en `docs/architecture/adr/`.
+[Architecture Decision Records](https://github.com/JeansCordoba/Colombian_fruits/tree/main/docs/architecture/adr) en el repo.
 
 ## Aprendizaje
 
-Para explicaciones en lenguaje sencillo: [Study/Home](Study/Home).
+Para explicaciones en lenguaje sencillo: [Study/Home](Study-Home).

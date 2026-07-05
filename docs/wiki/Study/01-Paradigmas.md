@@ -40,4 +40,4 @@ export class CreateFruitUseCase {
 
 ## Siguiente paso
 
-- [02-Arquitectura-Software](02-Arquitectura-Software)
+- [02-Arquitectura-Software](Study-02-Arquitectura-Software)

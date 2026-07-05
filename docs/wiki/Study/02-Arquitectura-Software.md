@@ -31,5 +31,5 @@ El use case solo conoce el puerto, no PostgreSQL.
 
 ## Siguiente paso
 
-- [03-Patrones-Creacionales](03-Patrones-Creacionales)
-- Profundizar: [Clean Architecture layers](../../architecture/02-clean-architecture-layers.md)
+- [03-Patrones-Creacionales](Study-03-Patrones-Creacionales)
+- Profundizar: [Clean Architecture layers](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/02-clean-architecture-layers.md)

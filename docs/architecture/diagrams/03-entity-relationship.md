@@ -1,20 +1,26 @@
-# Diagrama — Modelo entidad-relación (ERD)
+# Diagram: Entity-Relationship (ERD)
 
-Relaciones principales del catálogo de frutas colombianas.
+**Type:** ER diagram  
+**Tool:** Mermaid (`erDiagram`)  
+**Purpose:** Database relationships for catalogs, families, fruits, and N:M bridge tables.
+
+---
+
+## Diagram
 
 ```mermaid
 erDiagram
-    type_plants ||--o{ families : "has"
-    families ||--o{ fruits : "classifies"
-    type_fruits ||--o{ fruits : "types"
-    fruits ||--o{ fruit_climates : "grows in"
-    climates ||--o{ fruit_climates : "supports"
-    fruits ||--o{ fruit_departments : "found in"
-    departments ||--o{ fruit_departments : "contains"
-    fruits ||--o{ fruit_natural_regions : "in region"
-    natural_regions ||--o{ fruit_natural_regions : "defines"
-    fruits ||--o{ fruit_harvest_seasons : "harvested"
-    harvest_seasons ||--o{ fruit_harvest_seasons : "window"
+    type_plants ||--o{ families : has
+    families ||--o{ fruits : classifies
+    type_fruits ||--o{ fruits : types
+    fruits ||--o{ fruit_climates : grows_in
+    climates ||--o{ fruit_climates : supports
+    fruits ||--o{ fruit_departments : found_in
+    departments ||--o{ fruit_departments : contains
+    fruits ||--o{ fruit_natural_regions : in_region
+    natural_regions ||--o{ fruit_natural_regions : defines
+    fruits ||--o{ fruit_harvest_seasons : harvested
+    harvest_seasons ||--o{ fruit_harvest_seasons : window
 
     type_plants {
         int id PK
@@ -72,13 +78,15 @@ erDiagram
     }
 ```
 
-## Notas
+---
 
-- `TypePlant` se alcanza vía `Family`, no hay FK directa en `fruits`.
-- Tablas puente N:M: `fruit_climates`, `fruit_departments`, `fruit_natural_regions`, `fruit_harvest_seasons`.
-- Soft delete (`deleted_at`) en catálogos y agregados principales.
+## Notes
 
-## Referencias
+- `TypePlant` is reached through `Family`; fruits have no direct FK to `type_plants`.
+- N:M bridge tables: `fruit_climates`, `fruit_departments`, `fruit_natural_regions`, `fruit_harvest_seasons`.
+- Soft delete via `deleted_at` on catalogs and main aggregates.
+
+## References
 
 - [schema.dbml](../../database/schema.dbml)
-- [Glosario botánico](../../database/glossary.md)
+- [Botanical glossary](../../database/glossary.md)

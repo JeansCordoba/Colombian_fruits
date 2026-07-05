@@ -39,5 +39,5 @@ app.useGlobalFilters(new DomainExceptionFilter());
 
 ## Siguiente paso
 
-- [08-Glosario-Rapido](08-Glosario-Rapido)
-- [Diagrama módulos NestJS](../../architecture/diagrams/04-nestjs-modules.md)
+- [08-Glosario-Rapido](Study-08-Glosario-Rapido)
+- [Diagrama módulos NestJS](https://github.com/JeansCordoba/Colombian_fruits/blob/main/docs/architecture/diagrams/04-nestjs-modules.md)

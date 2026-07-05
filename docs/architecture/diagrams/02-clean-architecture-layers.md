@@ -1,29 +1,35 @@
-# Diagrama — Capas Clean Architecture
+# Diagram: Clean Architecture Layers
 
-Regla de dependencia: las capas externas dependen de las internas; el dominio no conoce infraestructura ni HTTP.
+**Type:** Architecture diagram  
+**Tool:** Mermaid (`flowchart TB`)  
+**Purpose:** Illustrate layer-first folders and the dependency rule.
+
+---
+
+## Diagram
 
 ```mermaid
 flowchart TB
     subgraph interfaces ["interfaces/"]
         Controllers["Controllers + DTOs"]
-        Filters["Exception Filters"]
+        Filters["Exception filters"]
     end
 
     subgraph application ["application/"]
-        UseCases["Use Cases"]
-        Validators["Validators / Services"]
+        UseCases["Use cases"]
+        Validators["Validators / services"]
     end
 
     subgraph domain ["domain/"]
         Entities["Entities"]
-        Ports["Repository Ports"]
-        Exceptions["Domain Exceptions"]
+        Ports["Repository ports"]
+        Exceptions["Domain exceptions"]
     end
 
     subgraph infrastructure ["infrastructure/"]
-        Repos["Repository Implementations"]
-        ORM["TypeORM Entities + Mappers"]
-        Config["Config + Migrations"]
+        Repos["Repository implementations"]
+        ORM["TypeORM entities + mappers"]
+        Config["Config + migrations"]
     end
 
     Controllers --> UseCases
@@ -34,18 +40,22 @@ flowchart TB
     Filters --> Exceptions
 ```
 
-## Regla de dependencia
+---
+
+## Dependency rule
 
 ```
 interfaces → application → domain ← infrastructure
 ```
 
-- **domain/** — lógica pura, sin NestJS ni TypeORM.
-- **application/** — orquesta casos de uso; depende solo de puertos del dominio.
-- **infrastructure/** — implementa puertos (TypeORM, config).
-- **interfaces/** — adaptadores HTTP; convierte DTOs ↔ Commands/Queries.
+| Layer | Folder | Responsibility |
+|-------|--------|----------------|
+| Domain | `src/domain/` | Pure business model, ports, exceptions |
+| Application | `src/application/` | Use cases; depends only on domain ports |
+| Infrastructure | `src/infrastructure/` | TypeORM, config, migrations |
+| Interfaces | `src/interfaces/` | HTTP adapters, DTOs, NestJS modules |
 
-## Referencias
+## References
 
-- [Capas detalladas](../02-clean-architecture-layers.md)
-- [Estructura layer-first](../03-layer-first-structure.md)
+- [Clean Architecture layers](../02-clean-architecture-layers.md)
+- [Layer-first structure](../03-layer-first-structure.md)
