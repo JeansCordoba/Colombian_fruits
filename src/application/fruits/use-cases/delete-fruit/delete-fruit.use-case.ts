@@ -1,22 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { FruitNotFoundException } from '../../../../domain/fruits/exceptions/fruit.exceptions';
-import { FruitWithRelations } from '../../../../domain/fruits/read-models/fruit-with-relations.read-model';
 import { FruitRepositoryPort } from '../../../../domain/fruits/repositories/fruit.repository.port';
 import { FRUIT_REPOSITORY } from '../../../../domain/fruits/repositories/fruit.repository.token';
-import { GetFruitByIdCommand } from './get-fruit-by-id.command';
+import { DeleteFruitCommand } from './delete-fruit.command';
 
 @Injectable()
-export class GetFruitByIdUseCase {
+export class DeleteFruitUseCase {
     constructor(
         @Inject(FRUIT_REPOSITORY)
         private readonly fruitRepository: FruitRepositoryPort,
     ) {}
 
-    async execute(command: GetFruitByIdCommand): Promise<FruitWithRelations> {
-        const fruit = await this.fruitRepository.findByIdWithRelations(command.id);
-        if (!fruit) {
+    async execute(command: DeleteFruitCommand): Promise<void> {
+        const existingFruit = await this.fruitRepository.findById(command.id);
+        if (!existingFruit) {
             throw new FruitNotFoundException(command.id);
         }
-        return fruit;
+        await this.fruitRepository.softDelete(command.id);
     }
 }

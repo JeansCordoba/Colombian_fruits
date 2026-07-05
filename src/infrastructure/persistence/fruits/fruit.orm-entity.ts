@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -11,7 +12,7 @@ import {
 import { FamilyOrmEntity } from '../families/family.orm-entity';
 import { TypeFruitOrmEntity } from '../type-fruits/type-fruit.orm-entity';
 
-@Entity('fruit')
+@Entity('fruits')
 export class FruitOrmEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -44,4 +45,7 @@ export class FruitOrmEntity {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 }
