@@ -31,5 +31,6 @@ import { FamiliesController } from './families.controller';
             useClass: TypePlantRepository,
         },
     ],
+    exports: [FAMILY_REPOSITORY],
 })
 export class FamiliesModule {}
